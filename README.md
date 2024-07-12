@@ -6,8 +6,6 @@
 <!-- badges: start -->
 
 [![](https://www.r-pkg.org/badges/version/deseats?color=green)](https://cran.r-project.org/package=deseats)
-[![CRAN
-checks](https://badges.cranchecks.info/summary/deseats.svg)](https://cran.r-project.org/web/checks/check_results_deseats.html)
 [![](http://cranlogs.r-pkg.org/badges/grand-total/deseats?color=blue)](https://cran.r-project.org/package=deseats)
 [![](http://cranlogs.r-pkg.org/badges/last-month/deseats?color=green)](https://cran.r-project.org/package=deseats)
 [![License:
@@ -45,7 +43,7 @@ library(deseats)
 ### (here: local cubic trend)
 est <- deseats(NOLABORFORCE, set_options(order_poly = 3))
 est@bwidth     # The automatically selected bandwidth
-#> [1] 0.2373354
+#> [1] 0.1968428
 
 ### Plot of the results
 plot(est, which = 1, xlab = "Year")
@@ -88,7 +86,7 @@ model
 #> 
 #>  Kernel:    Epanechnikov
 #>  Boundary:  Extend
-#>  Bandwidth: 0.2373
+#>  Bandwidth: 0.1968
 #> 
 #>   Trend:
 #>   ------
@@ -102,14 +100,14 @@ model
 #> -----------------------
 #> 
 #> Call:
-#> stats::arima(x = res, order = c(ar, 0, ma), include.mean = FALSE)
+#> stats::arima(x = res, order = c(ar, 0, ma), include.mean = arma_mean)
 #> 
 #> Coefficients:
 #>          ar1
-#>       0.7423
-#> s.e.  0.0350
+#>       0.6743
+#> s.e.  0.0387
 #> 
-#> sigma^2 estimated as 0.08069:  log likelihood = -58.14,  aic = 120.29
+#> sigma^2 estimated as 0.07454:  log likelihood = -43.77,  aic = 91.54
 ```
 
 The complete model can then be used for forecasting the seasonal time

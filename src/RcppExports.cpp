@@ -79,8 +79,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // fcastCpp
-arma::vec fcastCpp(const arma::vec& X, const arma::vec& innov, const arma::rowvec& ar, const arma::rowvec& ma, const int h);
-RcppExport SEXP _deseats_fcastCpp(SEXP XSEXP, SEXP innovSEXP, SEXP arSEXP, SEXP maSEXP, SEXP hSEXP) {
+arma::vec fcastCpp(const arma::vec& X, const arma::vec& innov, const arma::rowvec& ar, const arma::rowvec& ma, const double mu, const int h);
+RcppExport SEXP _deseats_fcastCpp(SEXP XSEXP, SEXP innovSEXP, SEXP arSEXP, SEXP maSEXP, SEXP muSEXP, SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -88,14 +88,15 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type innov(innovSEXP);
     Rcpp::traits::input_parameter< const arma::rowvec& >::type ar(arSEXP);
     Rcpp::traits::input_parameter< const arma::rowvec& >::type ma(maSEXP);
+    Rcpp::traits::input_parameter< const double >::type mu(muSEXP);
     Rcpp::traits::input_parameter< const int >::type h(hSEXP);
-    rcpp_result_gen = Rcpp::wrap(fcastCpp(X, innov, ar, ma, h));
+    rcpp_result_gen = Rcpp::wrap(fcastCpp(X, innov, ar, ma, mu, h));
     return rcpp_result_gen;
 END_RCPP
 }
 // tfcastCpp
-arma::vec tfcastCpp(const arma::vec& X, const arma::vec& innov, const arma::vec& epsBoot, const arma::rowvec& ar, const arma::rowvec& ma, const int h);
-RcppExport SEXP _deseats_tfcastCpp(SEXP XSEXP, SEXP innovSEXP, SEXP epsBootSEXP, SEXP arSEXP, SEXP maSEXP, SEXP hSEXP) {
+arma::vec tfcastCpp(const arma::vec& X, const arma::vec& innov, const arma::vec& epsBoot, const arma::rowvec& ar, const arma::rowvec& ma, const double mu, const int h);
+RcppExport SEXP _deseats_tfcastCpp(SEXP XSEXP, SEXP innovSEXP, SEXP epsBootSEXP, SEXP arSEXP, SEXP maSEXP, SEXP muSEXP, SEXP hSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -104,8 +105,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type epsBoot(epsBootSEXP);
     Rcpp::traits::input_parameter< const arma::rowvec& >::type ar(arSEXP);
     Rcpp::traits::input_parameter< const arma::rowvec& >::type ma(maSEXP);
+    Rcpp::traits::input_parameter< const double >::type mu(muSEXP);
     Rcpp::traits::input_parameter< const int >::type h(hSEXP);
-    rcpp_result_gen = Rcpp::wrap(tfcastCpp(X, innov, epsBoot, ar, ma, h));
+    rcpp_result_gen = Rcpp::wrap(tfcastCpp(X, innov, epsBoot, ar, ma, mu, h));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -145,52 +147,62 @@ BEGIN_RCPP
 END_RCPP
 }
 // armaCpp
-Rcpp::List armaCpp(const arma::vec& Xt, const int p, const int q);
-RcppExport SEXP _deseats_armaCpp(SEXP XtSEXP, SEXP pSEXP, SEXP qSEXP) {
+Rcpp::List armaCpp(const arma::vec& Xt, const int p, const int q, const int armamean);
+RcppExport SEXP _deseats_armaCpp(SEXP XtSEXP, SEXP pSEXP, SEXP qSEXP, SEXP armameanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type Xt(XtSEXP);
     Rcpp::traits::input_parameter< const int >::type p(pSEXP);
     Rcpp::traits::input_parameter< const int >::type q(qSEXP);
-    rcpp_result_gen = Rcpp::wrap(armaCpp(Xt, p, q));
+    Rcpp::traits::input_parameter< const int >::type armamean(armameanSEXP);
+    rcpp_result_gen = Rcpp::wrap(armaCpp(Xt, p, q, armamean));
     return rcpp_result_gen;
 END_RCPP
 }
 // BICarmaCpp
-double BICarmaCpp(const arma::vec& Xt, const int p, const int q);
-RcppExport SEXP _deseats_BICarmaCpp(SEXP XtSEXP, SEXP pSEXP, SEXP qSEXP) {
+double BICarmaCpp(const arma::vec& Xt, const int p, const int q, const int armamean);
+RcppExport SEXP _deseats_BICarmaCpp(SEXP XtSEXP, SEXP pSEXP, SEXP qSEXP, SEXP armameanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type Xt(XtSEXP);
     Rcpp::traits::input_parameter< const int >::type p(pSEXP);
     Rcpp::traits::input_parameter< const int >::type q(qSEXP);
-    rcpp_result_gen = Rcpp::wrap(BICarmaCpp(Xt, p, q));
+    Rcpp::traits::input_parameter< const int >::type armamean(armameanSEXP);
+    rcpp_result_gen = Rcpp::wrap(BICarmaCpp(Xt, p, q, armamean));
     return rcpp_result_gen;
 END_RCPP
 }
 // selectOrderBIC
-Rcpp::NumericVector selectOrderBIC(const arma::vec& Xt, const int pmax, const int qmax);
-RcppExport SEXP _deseats_selectOrderBIC(SEXP XtSEXP, SEXP pmaxSEXP, SEXP qmaxSEXP) {
+Rcpp::NumericVector selectOrderBIC(const arma::vec& Xt, const int pmin, const int pmax, const int qmin, const int qmax, const int armamean);
+RcppExport SEXP _deseats_selectOrderBIC(SEXP XtSEXP, SEXP pminSEXP, SEXP pmaxSEXP, SEXP qminSEXP, SEXP qmaxSEXP, SEXP armameanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type Xt(XtSEXP);
+    Rcpp::traits::input_parameter< const int >::type pmin(pminSEXP);
     Rcpp::traits::input_parameter< const int >::type pmax(pmaxSEXP);
+    Rcpp::traits::input_parameter< const int >::type qmin(qminSEXP);
     Rcpp::traits::input_parameter< const int >::type qmax(qmaxSEXP);
-    rcpp_result_gen = Rcpp::wrap(selectOrderBIC(Xt, pmax, qmax));
+    Rcpp::traits::input_parameter< const int >::type armamean(armameanSEXP);
+    rcpp_result_gen = Rcpp::wrap(selectOrderBIC(Xt, pmin, pmax, qmin, qmax, armamean));
     return rcpp_result_gen;
 END_RCPP
 }
 // armaoptCpp
-Rcpp::List armaoptCpp(const arma::vec& Xt);
-RcppExport SEXP _deseats_armaoptCpp(SEXP XtSEXP) {
+Rcpp::List armaoptCpp(const arma::vec& Xt, const int narmin, const int narmax, const int nmamin, const int nmamax, const int armamean);
+RcppExport SEXP _deseats_armaoptCpp(SEXP XtSEXP, SEXP narminSEXP, SEXP narmaxSEXP, SEXP nmaminSEXP, SEXP nmamaxSEXP, SEXP armameanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::vec& >::type Xt(XtSEXP);
-    rcpp_result_gen = Rcpp::wrap(armaoptCpp(Xt));
+    Rcpp::traits::input_parameter< const int >::type narmin(narminSEXP);
+    Rcpp::traits::input_parameter< const int >::type narmax(narmaxSEXP);
+    Rcpp::traits::input_parameter< const int >::type nmamin(nmaminSEXP);
+    Rcpp::traits::input_parameter< const int >::type nmamax(nmamaxSEXP);
+    Rcpp::traits::input_parameter< const int >::type armamean(armameanSEXP);
+    rcpp_result_gen = Rcpp::wrap(armaoptCpp(Xt, narmin, narmax, nmamin, nmamax, armamean));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -278,8 +290,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // algorithmCpp
-Rcpp::List algorithmCpp(const arma::vec& yt, const int p, const int s, const int mu, const double bStart, const int CF, const int errors, const double cb, const int bb, const int errm, const double expo);
-RcppExport SEXP _deseats_algorithmCpp(SEXP ytSEXP, SEXP pSEXP, SEXP sSEXP, SEXP muSEXP, SEXP bStartSEXP, SEXP CFSEXP, SEXP errorsSEXP, SEXP cbSEXP, SEXP bbSEXP, SEXP errmSEXP, SEXP expoSEXP) {
+Rcpp::List algorithmCpp(const arma::vec& yt, const int p, const int s, const int mu, const double bStart, const int CF, const int errors, const double cb, const int bb, const int errm, const double expo, const int narmin, const int narmax, const int nmamin, const int nmamax, const int armamean);
+RcppExport SEXP _deseats_algorithmCpp(SEXP ytSEXP, SEXP pSEXP, SEXP sSEXP, SEXP muSEXP, SEXP bStartSEXP, SEXP CFSEXP, SEXP errorsSEXP, SEXP cbSEXP, SEXP bbSEXP, SEXP errmSEXP, SEXP expoSEXP, SEXP narminSEXP, SEXP narmaxSEXP, SEXP nmaminSEXP, SEXP nmamaxSEXP, SEXP armameanSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -294,7 +306,12 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const int >::type bb(bbSEXP);
     Rcpp::traits::input_parameter< const int >::type errm(errmSEXP);
     Rcpp::traits::input_parameter< const double >::type expo(expoSEXP);
-    rcpp_result_gen = Rcpp::wrap(algorithmCpp(yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo));
+    Rcpp::traits::input_parameter< const int >::type narmin(narminSEXP);
+    Rcpp::traits::input_parameter< const int >::type narmax(narmaxSEXP);
+    Rcpp::traits::input_parameter< const int >::type nmamin(nmaminSEXP);
+    Rcpp::traits::input_parameter< const int >::type nmamax(nmamaxSEXP);
+    Rcpp::traits::input_parameter< const int >::type armamean(armameanSEXP);
+    rcpp_result_gen = Rcpp::wrap(algorithmCpp(yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo, narmin, narmax, nmamin, nmamax, armamean));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -349,22 +366,22 @@ static const R_CallMethodDef CallEntries[] = {
     {"_deseats_MAinftySHORT", (DL_FUNC) &_deseats_MAinftySHORT, 3},
     {"_deseats_ARinftyLONG", (DL_FUNC) &_deseats_ARinftyLONG, 2},
     {"_deseats_MAinftyLONG", (DL_FUNC) &_deseats_MAinftyLONG, 2},
-    {"_deseats_fcastCpp", (DL_FUNC) &_deseats_fcastCpp, 5},
-    {"_deseats_tfcastCpp", (DL_FUNC) &_deseats_tfcastCpp, 6},
+    {"_deseats_fcastCpp", (DL_FUNC) &_deseats_fcastCpp, 6},
+    {"_deseats_tfcastCpp", (DL_FUNC) &_deseats_tfcastCpp, 7},
     {"_deseats_seqCpp", (DL_FUNC) &_deseats_seqCpp, 2},
     {"_deseats_rseqCpp", (DL_FUNC) &_deseats_rseqCpp, 2},
     {"_deseats_factorialCpp", (DL_FUNC) &_deseats_factorialCpp, 1},
-    {"_deseats_armaCpp", (DL_FUNC) &_deseats_armaCpp, 3},
-    {"_deseats_BICarmaCpp", (DL_FUNC) &_deseats_BICarmaCpp, 3},
-    {"_deseats_selectOrderBIC", (DL_FUNC) &_deseats_selectOrderBIC, 3},
-    {"_deseats_armaoptCpp", (DL_FUNC) &_deseats_armaoptCpp, 1},
+    {"_deseats_armaCpp", (DL_FUNC) &_deseats_armaCpp, 4},
+    {"_deseats_BICarmaCpp", (DL_FUNC) &_deseats_BICarmaCpp, 4},
+    {"_deseats_selectOrderBIC", (DL_FUNC) &_deseats_selectOrderBIC, 6},
+    {"_deseats_armaoptCpp", (DL_FUNC) &_deseats_armaoptCpp, 6},
     {"_deseats_arma_sumacovCpp", (DL_FUNC) &_deseats_arma_sumacovCpp, 1},
     {"_deseats_acovCpp", (DL_FUNC) &_deseats_acovCpp, 2},
     {"_deseats_cf0Cpp", (DL_FUNC) &_deseats_cf0Cpp, 1},
     {"_deseats_fitteddeseatsCpp", (DL_FUNC) &_deseats_fitteddeseatsCpp, 6},
     {"_deseats_residdeseatsCpp", (DL_FUNC) &_deseats_residdeseatsCpp, 6},
     {"_deseats_derivdeseatsCpp", (DL_FUNC) &_deseats_derivdeseatsCpp, 7},
-    {"_deseats_algorithmCpp", (DL_FUNC) &_deseats_algorithmCpp, 11},
+    {"_deseats_algorithmCpp", (DL_FUNC) &_deseats_algorithmCpp, 16},
     {"_deseats_wls_Cpp", (DL_FUNC) &_deseats_wls_Cpp, 3},
     {"_deseats_find_sub_Cpp", (DL_FUNC) &_deseats_find_sub_Cpp, 4},
     {"_deseats_llin_calc_Cpp", (DL_FUNC) &_deseats_llin_calc_Cpp, 7},

@@ -7,7 +7,7 @@ arma::vec ARinftySHORT(const arma::vec& ar, const arma::rowvec& ma, const int ma
   
   if (max_i == 0) {
     
-    return arma::ones<arma::vec>(1);
+    return -arma::ones<arma::vec>(1);
     
   } else {
   
@@ -40,7 +40,7 @@ arma::vec ARinftySHORT(const arma::vec& ar, const arma::rowvec& ma, const int ma
       
       }    
   
-    return arma::join_cols(arma::ones<arma::vec>(1), -coefOut.subvec(l_ma, lc - 1));
+    return arma::join_cols(-arma::ones<arma::vec>(1), -coefOut.subvec(l_ma, lc - 1));
   
   }
   
@@ -108,7 +108,7 @@ arma::vec ARinftyLONG(arma::rowvec& ar, const arma::vec& d_coef) {
     
   }
   
-  c_out.subvec(1, l_ar - 1) = -1.0 * c_out.subvec(1, l_ar - 1);
+  c_out.subvec(0, l_ar - 1) = -1.0 * c_out.subvec(0, l_ar - 1);
 
   return c_out;  
   

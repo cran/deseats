@@ -236,26 +236,29 @@ aniSave <- function(fun) {
   )
 }
 
-select_arma_orders <- function(xt, ar, ma) {
+select_arma_orders <- function(xt, ar, ma, nar_lim, nma_lim, arma_mean) {
   
   if (is.null(ar) && is.null(ma)) {
     n <- length(xt)
-    bic <- matrix(NA, nrow = 4, ncol = 4)
-    P <- Q <- 0:3
+    P <- nar_lim[[1]]:nar_lim[[2]]
+    Q <- nma_lim[[1]]:nma_lim[[2]]
+    bic <- matrix(NA, nrow = length(P), ncol = length(Q))    
+
     for (p0 in P) {
       for (q0 in Q) {
         arma <- tryCatch({
           suppressWarnings(stats::arima(xt,
             order = c(p0, 0, q0),
-            include.mean = FALSE))
+            include.mean = arma_mean))
           }, error = function(e1) {data.frame(loglik = -10000000)}
         )
-        bic[p0 + 1, q0 + 1] <- -2 * arma$loglik + (p0 + q0) * log(n)
+        bic[p0 - P[[1]] + 1, q0 - Q[[1]] + 1] <- -2 * arma$loglik + (p0 + q0) * log(n)
       }
     }
-    orders <- c(which(bic == min(bic), arr.ind = TRUE)) - 1
-    ar <- orders[[1]]
-    ma <- orders[[2]]
+
+    orders <- c(which(bic == min(bic), arr.ind = TRUE))
+    ar <- P[[orders[[1]]]]
+    ma <- Q[[orders[[2]]]]
   } else if (is.null(ar)) {
     ar <- 0
   } else if (is.null(ma)) {
@@ -271,7 +274,7 @@ cap_1st <- function(string) {
     sub(paste0("^", first_letter), LETTERS[[w]], string)
 }
 
-check_input_deseats <- function(y, smoothing_options, bwidth_start, inflation_rate, correction_factor, autocor, drop, error_model) {
+check_input_deseats <- function(y, smoothing_options, bwidth_start, inflation_rate, correction_factor, autocor, drop, error_model, nar_lim, nma_lim, arma_mean) {
   
   stopifnot(
     'y needs to be a time series object of class "ts" or a numeric vector' = (inherits(y, "ts") || (is.atomic(y) && is.numeric(y))),
@@ -281,8 +284,10 @@ check_input_deseats <- function(y, smoothing_options, bwidth_start, inflation_ra
     "correction_factor must be either TRUE or FALSE" = (is.logical(correction_factor) && length(correction_factor) == 1),
     "autocor must be either TRUE or FALSE" = (is.logical(autocor) && length(autocor) == 1), 
     "drop must be a single numeric value between 0 and 0.25 or NULL" = (is.null(drop) || (length(drop) == 1 && is.numeric(drop) && drop >= 0 && drop <= 0.25)),
-    'error_model must be either "free" or "ARMA"' = (is.character(error_model) && (all(error_model == c("free", "ARMA")) || (length(error_model) == 1 && error_model %in% c("free", "ARMA"))))   
-    
+    'error_model must be either "free" or "ARMA"' = (is.character(error_model) && (all(error_model == c("free", "ARMA")) || (length(error_model) == 1 && error_model %in% c("free", "ARMA")))),
+    "nar_lim must be a two-element numeric vector" = (is.numeric(nar_lim) && length(nar_lim) == 2 && nar_lim[[1]] <= nar_lim[[2]]),
+    "nma_lim must be a two-element numeric vector" = (is.numeric(nma_lim) && length(nma_lim) == 2 && nma_lim[[1]] <= nma_lim[[2]]),  
+    "arma_mean must be a single logical value" = (is.logical(arma_mean) && length(arma_mean) == 1)   
   )   
   
 }

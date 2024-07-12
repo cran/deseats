@@ -96,7 +96,7 @@ zoo_to_ts <- function(xt) {
 #'  b = b
 #')
 #'
-#'file <- paste0(tempdir(), "\\ExampleFile.csv")
+#'file <- file.path(tempdir(), "ExampleFile.csv")
 #'
 #'write.table(df, file = file, quote = FALSE, sep = ",",
 #'  row.names = FALSE, col.names = TRUE)

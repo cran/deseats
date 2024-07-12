@@ -24,7 +24,10 @@
 #'@param correction_factor A logical vector of length one; theoretically, a 
 #'larger bandwidth to estimate the sum of autocovariances from residuals of 
 #'pilot trend and seasonality estimates is advisable than for estimating trend
-#'and seasonality; for \code{correction_factor = TRUE}, this is implemented.
+#'and seasonality; for \code{correction_factor = TRUE}, this is implemented; 
+#'the default is \code{correction_factor = FALSE}, because it was found 
+#'that setting this argument to \code{TRUE} often overestimates the 
+#'bandwidth.
 #'@param autocor a logical vector of length one; indicates whether to consider
 #'autocorrelated errors (\code{TRUE}) or independent but identically 
 #'distributed errors (\code{FALSE}); the default is \code{autocor = TRUE}.
@@ -38,6 +41,14 @@
 #'obtained purely nonparametrically (\code{"free"}) or whether an
 #'autoregressive moving-average (ARMA) model is assumed \code{"ARMA"}; the
 #'default is \code{error_model = "free"}.
+#'@param nar_lim only valid for \code{error_model = "ARMA"}; set the minimum and 
+#'maximum AR order to check via the BIC in each iteration of the algorithm via 
+#'a two-element vector.
+#'@param nma_lim only valid for \code{error_model = "ARMA"}; set the minimum and
+#'maximum MA order to check via the BIC in each iteration of the algorithm via
+#'a two-element vector.
+#'@param arma_mean only valid for \code{error_model = "ARMA"}; decide whether to 
+#'include an estimate of the mean in the ARMA fitting for the detrended series.
 #'
 #'@export
 #'
@@ -82,7 +93,7 @@
 #'select_bwidth(Xt)
 #'
 
-select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = NULL, inflation_rate = c("optimal", "naive"), correction_factor = TRUE, autocor = TRUE, drop = NULL, error_model = c("free", "ARMA")) {
+select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = NULL, inflation_rate = c("optimal", "naive"), correction_factor = FALSE, autocor = TRUE, drop = NULL, error_model = c("free", "ARMA"), nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE) {
   
   check_input_deseats(
     y,
@@ -92,7 +103,10 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
     correction_factor,
     autocor,
     drop,
-    error_model
+    error_model,
+    nar_lim,
+    nma_lim,
+    arma_mean
   )
   
   # Identify exact smoothing options from input
@@ -127,7 +141,7 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
   }
   
   tryCatch({
-    alg_result <- algorithmCpp(y, p, s, mu, bwidth_start, CF, err, drop, bb, err_m, infr)
+    alg_result <- algorithmCpp(y, p, s, mu, bwidth_start, CF, err, drop, bb, err_m, infr, nar_lim[[1]], nar_lim[[2]], nma_lim[[1]], nma_lim[[2]], arma_mean)
   }, error = function(e1) {
     stop(paste0(
       "Convergence of the bandwidth selection algorithm failed. Please try ",
@@ -180,7 +194,9 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
 #'pilot trend and seasonality estimates is advisable than for estimating trend
 #'and seasonality; for \code{correction_factor = TRUE}, this is implemented;
 #'for \code{error_model = "ARMA"}, \code{correction_factor = FALSE} is 
-#'enforced.
+#'enforced; the default is \code{correction_factor = FALSE}, because it was
+#'found that setting this argument to \code{TRUE} often overestimates the 
+#'bandwidth.
 #'@param autocor a logical vector of length one; indicates whether to consider
 #'autocorrelated errors (\code{TRUE}) or independent but identically 
 #'distributed errors (\code{FALSE}); the default is \code{autocor = TRUE}.
@@ -194,6 +210,14 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
 #'obtained purely nonparametrically (\code{"free"}) or whether an
 #'autoregressive moving-average (ARMA) model is assumed \code{"ARMA"}; the
 #'default is \code{error_model = "free"}.
+#'@param nar_lim only valid for \code{error_model = "ARMA"}; set the minimum and 
+#'maximum AR order to check via the BIC in each iteration of the algorithm via 
+#'a two-element vector.
+#'@param nma_lim only valid for \code{error_model = "ARMA"}; set the minimum and
+#'maximum MA order to check via the BIC in each iteration of the algorithm via
+#'a two-element vector.
+#'@param arma_mean only valid for \code{error_model = "ARMA"}; decide whether to 
+#'include an estimate of the mean in the ARMA fitting for the detrended series.
 #'
 #'@export
 #'
@@ -284,8 +308,8 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
 #'
 #'Usually, a local cubic trend (\code{smoothing_options = set_options(order_poly = 3)})
 #'gives more suitable results. Moreover, if the resulting bandwidth is too large, 
-#'adjustments to the arguments \code{inflation_rate}, \code{drop} and 
-#'\code{correction_factor} should be tried first in that order before any other changes 
+#'adjustments to the arguments \code{inflation_rate} and \code{drop} should be
+#'tried first in that order before any other changes 
 #'to the input arguments.
 #'
 #'The default print method for this function delivers key numbers such as the 
@@ -295,7 +319,7 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
 #'
 #'This function implements C++ code by means
 #'of the \code{\link[Rcpp:Rcpp-package]{Rcpp}} and
-#'\code{\link[RcppArmadillo:RcppArmadillo-package]{RcppArmadillo}} packages for
+#'\code{RcppArmadillo} packages for
 #'better performance.
 #'
 #'@return
@@ -377,7 +401,7 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
 #'}
 #'
 
-deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, inflation_rate = c("optimal", "naive"), correction_factor = TRUE, autocor = TRUE, drop = NULL, error_model = c("free", "ARMA")) {
+deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, inflation_rate = c("optimal", "naive"), correction_factor = FALSE, autocor = TRUE, drop = NULL, error_model = c("free", "ARMA"), nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE) {
 
   ts_name <- deparse(substitute(y))
   
@@ -392,7 +416,10 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
     correction_factor,
     autocor,
     drop,
-    error_model
+    error_model,
+    nar_lim,
+    nma_lim,
+    arma_mean
   )
   
   # Identify exact smoothing options from input
@@ -418,7 +445,10 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
       correction_factor = correction_factor, 
       autocor = autocor, 
       drop = drop, 
-      error_model = error_model
+      error_model = error_model,
+      nar_lim,
+      nma_lim,
+      arma_mean
     )$bopt
   
   }
@@ -448,7 +478,21 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
     }
   } else {
     if (err == 1) {
-      sum_autocov <- cf0Cpp(Residuals)      
+      if (err_m == 1) {
+        sum_autocov <- cf0Cpp(Residuals)          
+      } else if (err_m == 0) {
+        arma_orders <-  select_arma_orders(Residuals, NULL, NULL, nar_lim, nma_lim, arma_mean)
+        arma_fit <- stats::arima(Residuals, order = c(arma_orders[[1]], 0, arma_orders[[2]]), include.mean = arma_mean)
+        ar <- ma <- 0
+        if (arma_orders[[1]] > 0) {
+          ar <- arma_fit$coef[1:arma_orders[[1]]]
+        }
+        if (arma_orders[[2]] > 0) {
+          ma <- arma_fit$coef[(arma_orders[[1]] + 1):(arma_orders[[1]] + arma_orders[[2]])]
+        }
+        sig2 <- arma_fit$sigma2
+        sum_autocov <- sig2 * ((1 + sum(ma)) / (1 - sum(ar)))^2
+      }
     } else if (err == 0) {
       sum_autocov <- mean(Residuals^2) 
     }
@@ -519,7 +563,9 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
 #'pilot trend and seasonality estimates is advisable than for estimating trend
 #'and seasonality; for \code{correction_factor = TRUE}, this is implemented;
 #'for \code{error_model = "ARMA"}, \code{correction_factor = FALSE} is 
-#'enforced.
+#'enforced; the default is \code{correction_factor = FALSE}, because it was
+#'found that setting this argument to \code{TRUE} often overestimates the 
+#'bandwidth.
 #'@param drop a numeric vector of length one that indicates the proportion of 
 #'the observations to not include at each boundary in the bandwidth estimation 
 #'process, if a bandwidth is selected automatically; the default is 
@@ -529,6 +575,14 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
 #'obtained purely nonparametrically (\code{"free"}) or whether an
 #'autoregressive moving-average (ARMA) model is assumed \code{"ARMA"}; the
 #'default is \code{error_model = "free"}.
+#'@param nar_lim only valid for \code{error_model = "ARMA"}; set the minimum and 
+#'maximum AR order to check via the BIC in each iteration of the algorithm via 
+#'a two-element vector.
+#'@param nma_lim only valid for \code{error_model = "ARMA"}; set the minimum and
+#'maximum MA order to check via the BIC in each iteration of the algorithm via
+#'a two-element vector.
+#'@param arma_mean only valid for \code{error_model = "ARMA"}; decide whether to 
+#'include an estimate of the mean in the ARMA fitting for the detrended series.
 #'
 #'@export
 #'
@@ -544,8 +598,8 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
 #'All function arguments except for \code{arma_options} are identical to 
 #'those in \code{\link[deseats]{deseats}}. If all elements in 
 #'\code{arma_options} are set to \code{NULL}, the ARMA model orders are 
-#'selected from \eqn{p, q = 0, 1, 2, 3} according to the BIC.
-#'
+#'selected for \eqn{p, q} from \code{nar_lim[[1]]} and \code{nma_lim[[1]]} up
+#'until \code{nar_lim[[2]]} and \code{nma_lim[[2]]} according to the BIC.
 #'
 #'@return
 #'The function returns and S4 object with the following elements (access them 
@@ -580,29 +634,29 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
 s_semiarma <- function(yt, smoothing_options = set_options(),
                        arma_options = list(ar_order = NULL, ma_order = NULL),
                        bwidth_start = 0.2, inflation_rate = c("optimal", "naive"),
-                       correction_factor = TRUE, drop = 0.1,
-                       error_model = c("free", "ARMA")) {
+                       correction_factor = FALSE, drop = NULL,
+                       error_model = c("free", "ARMA"),
+                       nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE) {
   
   ts_name <- deparse(substitute(yt))
   
   nonpar_model <- deseats(yt, smoothing_options, bwidth_start, inflation_rate = inflation_rate,
                           autocor = TRUE, correction_factor = correction_factor, drop = drop,
-                          error_model = error_model)
+                          error_model = error_model, nar_lim = nar_lim,
+                          nma_lim = nma_lim, arma_mean = arma_mean)
   nonpar_model@ts_name <- ts_name
   
   res <- residuals(nonpar_model)
   
   ar_ma_select <- select_arma_orders(res, arma_options$ar_order, 
-                                     arma_options$ma_order)  
+                                     arma_options$ma_order,
+                                     nar_lim, nma_lim, arma_mean)  
   
   ar <- ar_ma_select[[1]]
   ma <- ar_ma_select[[2]]
 
   par_est <- stats::arima(res, order = c(ar, 0, ma),
-                        include.mean = FALSE)
-
-  par_est <- stats::arima(res, order = c(ar, 0, ma),
-                        include.mean = FALSE)
+                        include.mean = arma_mean)
 
   arma_res <- par_est$residuals
   attributes(arma_res) <- attributes(nonpar_model@decomp[, 1])

@@ -2,8 +2,8 @@ Package: deseats
 Type: Package
 Title: Data-Driven Locally Weighted Regression for Trend and
         Seasonality in TS
-Version: 1.0.0
-Date: 2023-11-08
+Version: 1.1.0
+Date: 2024-07-10
 Authors@R: 
     c(person(given = "Yuanhua",
              family = "Feng",
@@ -29,7 +29,7 @@ Description: Various methods for the identification of trend and seasonal
   Statistical Office of Germany.
 Imports: Rcpp (>= 1.0.6), ggplot2, stats, graphics, animation, utils,
         shiny, tools, zoo, future, furrr, future.apply, progressr,
-        purrr, rlang
+        purrr, rlang, tidyr
 License: GPL-3
 Encoding: UTF-8
 LinkingTo: Rcpp, RcppArmadillo
@@ -47,10 +47,11 @@ Collate: 'AttachMessage.R' 'RcppExports.R' 'generics.R'
         'forecasting_functions.R' 'bwidth_bootstrap.R'
         'gain_function.R' 'linear_filters.R' 'ts_conversion.R'
         'hA_calc.R' 'arima_no_warn.R' 'deseats-package.R'
+        'seasonplot.R'
 Config/testthat/edition: 3
 NeedsCompilation: yes
-Packaged: 2023-11-08 12:37:14 UTC; Dominik Schulz
+Packaged: 2024-07-10 11:16:49 UTC; Dominik Schulz
 Author: Yuanhua Feng [aut] (Paderborn University, Germany),
   Dominik Schulz [aut, cre] (Paderborn University, Germany)
 Repository: CRAN
-Date/Publication: 2023-11-08 19:50:02 UTC
+Date/Publication: 2024-07-12 10:50:15 UTC

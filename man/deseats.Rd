@@ -10,10 +10,13 @@ deseats(
   smoothing_options = set_options(),
   bwidth_start = NULL,
   inflation_rate = c("optimal", "naive"),
-  correction_factor = TRUE,
+  correction_factor = FALSE,
   autocor = TRUE,
   drop = NULL,
-  error_model = c("free", "ARMA")
+  error_model = c("free", "ARMA"),
+  nar_lim = c(0, 3),
+  nma_lim = c(0, 3),
+  arma_mean = FALSE
 )
 }
 \arguments{
@@ -46,7 +49,9 @@ larger bandwidth to estimate the sum of autocovariances from residuals of
 pilot trend and seasonality estimates is advisable than for estimating trend
 and seasonality; for \code{correction_factor = TRUE}, this is implemented;
 for \code{error_model = "ARMA"}, \code{correction_factor = FALSE} is 
-enforced.}
+enforced; the default is \code{correction_factor = FALSE}, because it was
+found that setting this argument to \code{TRUE} often overestimates the 
+bandwidth.}
 
 \item{autocor}{a logical vector of length one; indicates whether to consider
 autocorrelated errors (\code{TRUE}) or independent but identically 
@@ -63,6 +68,17 @@ for \code{autocor = TRUE} the sum of autocovariances of the errors is
 obtained purely nonparametrically (\code{"free"}) or whether an
 autoregressive moving-average (ARMA) model is assumed \code{"ARMA"}; the
 default is \code{error_model = "free"}.}
+
+\item{nar_lim}{only valid for \code{error_model = "ARMA"}; set the minimum and 
+maximum AR order to check via the BIC in each iteration of the algorithm via 
+a two-element vector.}
+
+\item{nma_lim}{only valid for \code{error_model = "ARMA"}; set the minimum and
+maximum MA order to check via the BIC in each iteration of the algorithm via
+a two-element vector.}
+
+\item{arma_mean}{only valid for \code{error_model = "ARMA"}; decide whether to 
+include an estimate of the mean in the ARMA fitting for the detrended series.}
 }
 \value{
 The function returns and S4 object with the following elements (access them 
@@ -199,8 +215,8 @@ residuals (see \code{\link[stats]{arima}}).
 
 Usually, a local cubic trend (\code{smoothing_options = set_options(order_poly = 3)})
 gives more suitable results. Moreover, if the resulting bandwidth is too large, 
-adjustments to the arguments \code{inflation_rate}, \code{drop} and 
-\code{correction_factor} should be tried first in that order before any other changes 
+adjustments to the arguments \code{inflation_rate} and \code{drop} should be
+tried first in that order before any other changes 
 to the input arguments.
 
 The default print method for this function delivers key numbers such as the 
@@ -210,7 +226,7 @@ NOTE:
 
 This function implements C++ code by means
 of the \code{\link[Rcpp:Rcpp-package]{Rcpp}} and
-\code{\link[RcppArmadillo:RcppArmadillo-package]{RcppArmadillo}} packages for
+\code{RcppArmadillo} packages for
 better performance.
 }
 \examples{

@@ -21,12 +21,12 @@ MAinftyLONG <- function(ma, d_coef) {
     .Call('_deseats_MAinftyLONG', PACKAGE = 'deseats', ma, d_coef)
 }
 
-fcastCpp <- function(X, innov, ar, ma, h) {
-    .Call('_deseats_fcastCpp', PACKAGE = 'deseats', X, innov, ar, ma, h)
+fcastCpp <- function(X, innov, ar, ma, mu, h) {
+    .Call('_deseats_fcastCpp', PACKAGE = 'deseats', X, innov, ar, ma, mu, h)
 }
 
-tfcastCpp <- function(X, innov, epsBoot, ar, ma, h) {
-    .Call('_deseats_tfcastCpp', PACKAGE = 'deseats', X, innov, epsBoot, ar, ma, h)
+tfcastCpp <- function(X, innov, epsBoot, ar, ma, mu, h) {
+    .Call('_deseats_tfcastCpp', PACKAGE = 'deseats', X, innov, epsBoot, ar, ma, mu, h)
 }
 
 seqCpp <- function(from, to) {
@@ -41,20 +41,20 @@ factorialCpp <- function(k) {
     .Call('_deseats_factorialCpp', PACKAGE = 'deseats', k)
 }
 
-armaCpp <- function(Xt, p, q) {
-    .Call('_deseats_armaCpp', PACKAGE = 'deseats', Xt, p, q)
+armaCpp <- function(Xt, p, q, armamean) {
+    .Call('_deseats_armaCpp', PACKAGE = 'deseats', Xt, p, q, armamean)
 }
 
-BICarmaCpp <- function(Xt, p, q) {
-    .Call('_deseats_BICarmaCpp', PACKAGE = 'deseats', Xt, p, q)
+BICarmaCpp <- function(Xt, p, q, armamean) {
+    .Call('_deseats_BICarmaCpp', PACKAGE = 'deseats', Xt, p, q, armamean)
 }
 
-selectOrderBIC <- function(Xt, pmax, qmax) {
-    .Call('_deseats_selectOrderBIC', PACKAGE = 'deseats', Xt, pmax, qmax)
+selectOrderBIC <- function(Xt, pmin, pmax, qmin, qmax, armamean) {
+    .Call('_deseats_selectOrderBIC', PACKAGE = 'deseats', Xt, pmin, pmax, qmin, qmax, armamean)
 }
 
-armaoptCpp <- function(Xt) {
-    .Call('_deseats_armaoptCpp', PACKAGE = 'deseats', Xt)
+armaoptCpp <- function(Xt, narmin, narmax, nmamin, nmamax, armamean) {
+    .Call('_deseats_armaoptCpp', PACKAGE = 'deseats', Xt, narmin, narmax, nmamin, nmamax, armamean)
 }
 
 arma_sumacovCpp <- function(arma) {
@@ -81,8 +81,8 @@ derivdeseatsCpp <- function(y, p, s, mu, b, bb, v) {
     .Call('_deseats_derivdeseatsCpp', PACKAGE = 'deseats', y, p, s, mu, b, bb, v)
 }
 
-algorithmCpp <- function(yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo) {
-    .Call('_deseats_algorithmCpp', PACKAGE = 'deseats', yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo)
+algorithmCpp <- function(yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo, narmin, narmax, nmamin, nmamax, armamean) {
+    .Call('_deseats_algorithmCpp', PACKAGE = 'deseats', yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo, narmin, narmax, nmamin, nmamax, armamean)
 }
 
 wls_Cpp <- function(x, y, wk) {

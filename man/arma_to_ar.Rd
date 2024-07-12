@@ -38,7 +38,7 @@ NOTE:
 
 This function implements C++ code by means
 of the \code{\link[Rcpp:Rcpp-package]{Rcpp}} and
-\code{\link[RcppArmadillo:RcppArmadillo-package]{RcppArmadillo}} packages for
+\code{RcppArmadillo} packages for
 better performance.
 }
 \examples{

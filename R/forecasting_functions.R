@@ -59,17 +59,23 @@ bootSetup <- function(model, X, p, q, h, n.start, b_type = c("simple", "advanced
   ma <- numeric(0)
   ar.t <- 0
   ma.t <- 0
+  mu.t <- 0
   if (p > 0) {
     ar <- ar.t <- coefs[1:p]
   }
   if (q > 0) {
     ma <- ma.t <- coefs[(p + 1):(p + q)]
   }
+  if (p + q != length(coefs)) {
+    mu.t <- tail(coefs, 1)
+    arma_mean <- TRUE
+  }
 
   rm(coefs)
 
   ar.star <- 0
   ma.star <- 0
+  mu.star <- 0
 
   if (b_type == "simple") {
     
@@ -78,7 +84,7 @@ bootSetup <- function(model, X, p, q, h, n.start, b_type = c("simple", "advanced
     out_fun <- function(x) {
       eps_boot <- sample(Fi, size = h, replace = TRUE)
       X.future <- c(tfcastCpp(X, innov,
-        eps_boot, ar.t, ma.t, h))
+        eps_boot, ar.t, ma.t, mu.t, h))
 
       X.future - X.fc
     }    
@@ -89,13 +95,13 @@ bootSetup <- function(model, X, p, q, h, n.start, b_type = c("simple", "advanced
       eps_boot <- sample(Fi, size = n.start + n + h, replace = TRUE)
       X.star <- as.numeric(stats::arima.sim(model = list(ar = ar, ma = ma),
         n = n, n.start = n.start, innov = eps_boot[(n.start + 1):(n.start + n)],
-        start.innov = eps_boot[1:n.start]))
+        start.innov = eps_boot[1:n.start])) + mu.t
       est <- suppressWarnings(
         tryCatch(
-          stats::arima(X.star, order = c(p, 0, q), include.mean = FALSE),
+          stats::arima(X.star, order = c(p, 0, q), include.mean = arma_mean),
           error = function(c1) {
             stats::arima(X.star, order = c(p, 0, q),
-              include.mean = FALSE, method = "ML")
+              include.mean = arma_mean, method = "ML")
           }
         )
       )
@@ -107,12 +113,17 @@ bootSetup <- function(model, X, p, q, h, n.start, b_type = c("simple", "advanced
       if (q > 0) {
         ma.star <- coef[(p + 1):(p + q)]
       }
+      fixed <- c(head(ar.star, p), head(ma.star, q))
+      if (arma_mean) {
+        mu.star <- tail(coef, 1)
+        fixed <- c(fixed, mu.star)
+      }
 
       eps.star <- suppressWarnings(stats::arima(X, order = c(p, 0, q),
-        fixed = c(head(ar.star, p), head(ma.star, q)), include.mean = FALSE)[["residuals"]])
-      X.star.hat <- c(fcastCpp(X, eps.star, ar.star, ma.star, h))
+        fixed = fixed, include.mean = arma_mean)[["residuals"]])
+      X.star.hat <- c(fcastCpp(X, eps.star, ar.star, ma.star, mu.star, h))
       X.true <- c(tfcastCpp(X, innov,
-        eps_boot[(n.start + n + 1):(n.start + n + h)], ar.t, ma.t, h))
+        eps_boot[(n.start + n + 1):(n.start + n + h)], ar.t, ma.t, mu.t, h))
       X.true - X.star.hat
     }
     
@@ -140,6 +151,11 @@ normCast <- function(model, p = NULL, q = NULL, h = 1,
   } else {
     ma <- 0
   }
+  if ((p + q) != length(coefs)) {
+    mu <- tail(coefs, 1)
+  } else {
+    mu <- 0
+  }
 
   innov <- model$residuals
   sig2 <- model$sigma2
@@ -154,6 +170,6 @@ normCast <- function(model, p = NULL, q = NULL, h = 1,
   cname <- paste0(q_check * 100, "%")
   colnames(q_out) <- cname
   
-  q_out
+  q_out + mu
 
 }

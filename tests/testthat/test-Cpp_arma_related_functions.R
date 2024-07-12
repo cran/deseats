@@ -4,44 +4,44 @@ ln <- log(n)
 
 p <- 1
 q <- 0
-fit1_a <- armaCpp(Xt, p = p, q = q)
+fit1_a <- armaCpp(Xt, p = p, q = q, armamean = TRUE)
 fit1_b <- stats::arima(Xt, order = c(p, 0, q))
-BIC1_a <- BICarmaCpp(Xt, p = p, q = q)
+BIC1_a <- BICarmaCpp(Xt, p = p, q = q, armamean = TRUE)
 BIC1_b <- -2 * fit1_b$loglik + ln * (p + q)
 
 p <- 0
 q <- 1
-fit2_a <- armaCpp(Xt, p = p, q = q)
+fit2_a <- armaCpp(Xt, p = p, q = q, armamean = TRUE)
 fit2_b <- stats::arima(Xt, order = c(p, 0, q))
-BIC2_a <- BICarmaCpp(Xt, p = p, q = q)
+BIC2_a <- BICarmaCpp(Xt, p = p, q = q, armamean = TRUE)
 BIC2_b <- -2 * fit2_b$loglik + ln * (p + q)
 
 p <- 0
 q <- 0
-fit3_a <- armaCpp(Xt, p = p, q = q)
+fit3_a <- armaCpp(Xt, p = p, q = q, armamean = TRUE)
 fit3_b <- stats::arima(Xt, order = c(p, 0, q))
-BIC3_a <- BICarmaCpp(Xt, p = p, q = q)
+BIC3_a <- BICarmaCpp(Xt, p = p, q = q, armamean = TRUE)
 BIC3_b <- -2 * fit3_b$loglik + ln * (p + q)
 
 p <- 2
 q <- 0
-fit4_a <- armaCpp(Xt, p = p, q = q)
+fit4_a <- armaCpp(Xt, p = p, q = q, armamean = TRUE)
 fit4_b <- stats::arima(Xt, order = c(p, 0, q))
-BIC4_a <- BICarmaCpp(Xt, p = p, q = q)
+BIC4_a <- BICarmaCpp(Xt, p = p, q = q, armamean = TRUE)
 BIC4_b <- -2 * fit4_b$loglik + ln * (p + q)
 
 p <- 0
 q <- 2
-fit5_a <- armaCpp(Xt, p = p, q = q)
+fit5_a <- armaCpp(Xt, p = p, q = q, armamean = TRUE)
 fit5_b <- stats::arima(Xt, order = c(p, 0, q))
-BIC5_a <- BICarmaCpp(Xt, p = p, q = q)
+BIC5_a <- BICarmaCpp(Xt, p = p, q = q, armamean = TRUE)
 BIC5_b <- -2 * fit5_b$loglik + ln * (p + q)
 
 p <- 2
 q <- 2
-fit6_a <- armaCpp(Xt, p = p, q = q)
+fit6_a <- armaCpp(Xt, p = p, q = q, armamean = TRUE)
 fit6_b <- stats::arima(Xt, order = c(p, 0, q))
-BIC6_a <- BICarmaCpp(Xt, p = p, q = q)
+BIC6_a <- BICarmaCpp(Xt, p = p, q = q, armamean = TRUE)
 BIC6_b <- -2 * fit6_b$loglik + ln * (p + q)
 
 ### Basic ARMA fitting with different orders using 'armaCpp'
@@ -93,7 +93,8 @@ for (p in 0:3) {
 
 pq_opt_b <- c(which(BIC_all_b == min(BIC_all_b), arr.ind = TRUE)) - 1
 pq_opt_b <- c(pq_opt_b[[1]], 0, pq_opt_b[[2]])
-pq_opt_a <- selectOrderBIC(Xt, pmax = 3, qmax = 3)
+pq_opt_a <- selectOrderBIC(Xt, pmin = 0, pmax = 3, qmin = 0, qmax = 3,
+                           armamean = TRUE)
 
 test_that("ARMA model orders are selected correctly following the BIC", {
   
@@ -104,7 +105,7 @@ test_that("ARMA model orders are selected correctly following the BIC", {
 ### Optimal model fitting via 'armaoptCpp'
 
 mopt_b <- stats::arima(Xt, order = pq_opt_b)
-mopt_a <- armaoptCpp(Xt)
+mopt_a <- armaoptCpp(Xt, 0, 3, 0, 3, TRUE)
 
 test_that("Selected optimal model return the same fitting results", {
   
