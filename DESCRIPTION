@@ -2,8 +2,8 @@ Package: deseats
 Type: Package
 Title: Data-Driven Locally Weighted Regression for Trend and
         Seasonality in TS
-Version: 1.1.0
-Date: 2024-07-10
+Version: 1.1.1
+Date: 2025-06-23
 Authors@R: 
     c(person(given = "Yuanhua",
              family = "Feng",
@@ -50,8 +50,8 @@ Collate: 'AttachMessage.R' 'RcppExports.R' 'generics.R'
         'seasonplot.R'
 Config/testthat/edition: 3
 NeedsCompilation: yes
-Packaged: 2024-07-10 11:16:49 UTC; Dominik Schulz
+Packaged: 2025-06-23 15:31:28 UTC; Dominik Schulz
 Author: Yuanhua Feng [aut] (Paderborn University, Germany),
   Dominik Schulz [aut, cre] (Paderborn University, Germany)
 Repository: CRAN
-Date/Publication: 2024-07-12 10:50:15 UTC
+Date/Publication: 2025-06-23 15:50:13 UTC

@@ -194,7 +194,7 @@ setMethod("autoplot", "deseats_fc", function(object, ...) {
     ggplot2::geom_line(ggplot2::aes(x = .data[["Time"]], y = .data[["Observations"]], color = .data[["Color"]]))
   
   if (m > 1) {  
-  
+    
     .df4 <- data.frame(
       ymin = c(unname(unlist(.df3[, 1:(m - 1)]))),
       ymax = c(unname(unlist(.df3[, 2:m]))),
@@ -216,7 +216,7 @@ setMethod("autoplot", "deseats_fc", function(object, ...) {
       ggplot2::geom_ribbon(data = .df5, ggplot2::aes(x = .data[["Time"]], ymin = .data[["ymin"]], ymax = .data[["ymax"]],
                                                             fill = .data[["Case"]]),
                            inherit.aes = FALSE, show.legend = FALSE)
-  }
+  } 
   
   .df6 <- data.frame(
     ymin = c(unname(unlist(.df3[, m]))),
@@ -227,7 +227,7 @@ setMethod("autoplot", "deseats_fc", function(object, ...) {
   
   p_out <- p_out + 
     ggplot2::geom_ribbon(data = .df6, ggplot2::aes(x = .data[["Time"]], ymin = .data[["ymin"]], ymax = .data[["ymax"]],
-      fill = .data[["Case"]]), inherit.aes = FALSE)
+      fill = .data[["Case"]]), inherit.aes = FALSE, show.legend = TRUE)
     
   fill_color <- ggplot2::alpha("blue", rev(seq(0.1, 0.1 + (m - 1) * 0.15, 0.15)))
   names(fill_color) <- 1:m
@@ -240,11 +240,11 @@ setMethod("autoplot", "deseats_fc", function(object, ...) {
     ggplot2::xlab("Time") +
     ggplot2::ylab(object@ts_name) +
     ggplot2::ggtitle(paste0('The observations of "', object@ts_name, '" together with point and interval forecasts')) +
-    ggplot2::scale_color_manual(name = "Series", values = c("black", "blue"), 
-                                labels = c("Observations", "Forecasts")) +    
     ggplot2::scale_fill_manual(name = "Intervals", values = fill_color,
-                               labels = labels_legend) +
-    ggplot2::guides(color = ggplot2::guide_legend(order = 1),
+                               labels = labels_legend, breaks = as.character(1:m)) +
+    ggplot2::scale_color_manual(name = "Series", values = c("black", "blue"), 
+                                labels = c("Observations", "Forecasts")) +     
+    ggplot2::guides(color = ggplot2::guide_legend(order = 1, override.aes = list(fill = ggplot2::alpha("white", 0))),
                     fill = ggplot2::guide_legend(order = 2))
 
   

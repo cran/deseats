@@ -1,6 +1,6 @@
-df5ffe7ce78ef061361fef348ef807cc *DESCRIPTION
+e294eab7e41cfe945f6487f793ba9812 *DESCRIPTION
 2c86e3de550e1c8b09d357731dbd8709 *NAMESPACE
-6eb2ef1a9e59ff0f68998f185e268ab3 *NEWS.md
+0b591b611c9096013b1514322164aeb6 *NEWS.md
 64bb7179347d0bd1f1c0b69d7489474c *R/AttachMessage.R
 0a5c831d1c814ee9d7289c2e75c0977f *R/RcppExports.R
 5d7633be525f392d91c83a897c058aaa *R/accuracy_measures.R
@@ -9,7 +9,7 @@ ea3619907bd21b10f407305f41a1066d *R/bwidth_bootstrap.R
 373d2f62b03119a0e24292588fdf6252 *R/class-bv41.R
 92451952b935ccfc5cacfc9752a26443 *R/class-decomp.R
 8bb6247b18edb023dac8feeef9ff4c69 *R/class-deseats.R
-128e6affad61d8a97f49152639da12d9 *R/class-deseats_fc.R
+e3c33ae7546a05442dd0149032ef49cf *R/class-deseats_fc.R
 30b3ae7825176013238769a5ad040680 *R/class-hfilter.R
 85407b77d5c95a82430bfd947c9a5688 *R/class-llindecomp.R
 339774c3fe3ca7400c8e84e7697dbfa3 *R/class-lmdecomp.R
@@ -19,7 +19,7 @@ c3b59d5731734c5bdb9a2162673ea1e7 *R/class-smoothing_options.R
 9a4314c93e2cf2093997783807c1e701 *R/data_documentation.R
 90077ec088d5a00e6c6da362d8a37359 *R/deseats-package.R
 c1955886f005f3c8bcb23d91bc2e01ea *R/fitting_functions.R
-4d5e11534f4dcd4123c7020aa8cf83a1 *R/forecasting_functions.R
+1f67b381a8fe7bbc7183ae436da4fef8 *R/forecasting_functions.R
 732f1e7b38003db127d13a73721fc2a1 *R/gain_function.R
 0f232ce021e774396c6fef382523ebed *R/generics.R
 390956130895555bae4b9cdc60328257 *R/hA_calc.R

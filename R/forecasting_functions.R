@@ -151,11 +151,11 @@ normCast <- function(model, p = NULL, q = NULL, h = 1,
   } else {
     ma <- 0
   }
-  if ((p + q) != length(coefs)) {
-    mu <- tail(coefs, 1)
-  } else {
-    mu <- 0
-  }
+  # if ((p + q) != length(coefs)) {
+  #   mu <- tail(coefs, 1)
+  # } else {
+  #   mu <- 0
+  # }
 
   innov <- model$residuals
   sig2 <- model$sigma2
@@ -170,6 +170,6 @@ normCast <- function(model, p = NULL, q = NULL, h = 1,
   cname <- paste0(q_check * 100, "%")
   colnames(q_out) <- cname
   
-  q_out + mu
+  q_out
 
 }
