@@ -21,8 +21,8 @@ The function returns an plot object in the style of \code{ggplot2}. The plot
 can therefore be adjusted easily using common \code{ggplot2} syntax.
 }
 \examples{
-seasonplot_gg(TEMPERATURE) +
+suppressWarnings(print(seasonplot_gg(TEMPERATURE) +
  ggplot2::ylab("Degrees Celsius") +
- ggplot2::ggtitle("Seasonal plot of German temperature data")
+ ggplot2::ggtitle("Seasonal plot of German temperature data")))
 
 }

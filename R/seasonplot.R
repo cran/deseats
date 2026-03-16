@@ -132,9 +132,9 @@ seasonplot <- function(x, xlab = NULL, ylab = NULL, main = NULL, labels = TRUE,
 #'The function returns a \code{ggplot2} plot object.
 #'
 #'@examples
-#'seasonplot_gg(TEMPERATURE) +
+#'suppressWarnings(print(seasonplot_gg(TEMPERATURE) +
 #'  ggplot2::ylab("Degrees Celsius") +
-#'  ggplot2::ggtitle("Seasonal plot of German temperature data")
+#'  ggplot2::ggtitle("Seasonal plot of German temperature data")))
 #'
 
 seasonplot_gg <- function(x) {

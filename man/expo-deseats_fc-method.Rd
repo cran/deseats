@@ -18,6 +18,13 @@ An object of class \code{"deseats_fc"} is returned.
 Exponentiate, i.e. as act of retransformation, (point and interval) forecasts 
 obtained via the \code{deseats} package.
 }
+\details{
+This function simply exponentiates point forecasts and bounds of interval
+forecasts within an object of class \code{"deseats_fc"}. This does not
+have the option to account for potential biases in point forecasts. For this
+purpose, use the predict method directly with \code{expo = TRUE} and
+\code{adjust.bias = TRUE}.
+}
 \examples{
 \donttest{
 est <- s_semiarma(log(EXPENDITURES), set_options(order_poly = 3))

@@ -146,6 +146,9 @@ function(object, col.obs = "grey74", col.fit = "red",
   t <- c(stats::time(object@decomp))
   tsub <- 1:n
   
+  bm_short <- object@boundary_method == "shorten"
+  bm_extend <- object@boundary_method == "extend"
+  
   oldPar <- graphics::par(no.readonly = TRUE)
   on.exit(graphics::par(oldPar), add = TRUE)
   
@@ -195,14 +198,25 @@ function(object, col.obs = "grey74", col.fit = "red",
     plot(object@decomp[, 1], col = col.obs,
          main = main, ylab = "", xlab = xlab)
     graphics::axis(side = 2, col = col.fit, col.ticks = col.fit, col.axis = col.fit)
-    graphics::mtext(ylab1, side = 2, line = 3, col = col.fit)      
-    graphics::polygon(c(rep(t[[1]], 2), rep(t[[2 * habs + 1]], 2)), 
-            c(min_y - 0.1 * d, max_y + 0.1 * d, max_y + 0.1 * d, min_y - 0.1 * d),
-            border = NA, col = ggplot2::alpha(col.window, 0.1))
-    graphics::abline(v = c(t[[1]], t[[2 * habs + 1]]), col = col.window, lwd = 2)
-    graphics::abline(v = t[[frame]], col = col.spot, lty = "dashed", lwd = 2)
-    graphics::lines(t[1:frame], fitted(object)[1:frame], col = col.fit, lwd = 1)    
-    graphics::lines(t[1:(2 * habs + 1)], lm_fit, col = ggplot2::alpha("black", 0.9), lwd = 1, lty = 3)
+    graphics::mtext(ylab1, side = 2, line = 3, col = col.fit)   
+    
+    if (bm_short) {
+      graphics::polygon(c(rep(t[[1]], 2), rep(t[[habs + frame]], 2)), 
+        c(min_y - 0.1 * d, max_y + 0.1 * d, max_y + 0.1 * d, min_y - 0.1 * d),
+        border = NA, col = ggplot2::alpha(col.window, 0.1)) 
+          graphics::abline(v = c(t[[1]], t[[habs + frame]]), col = col.window, lwd = 2)
+      graphics::abline(v = t[[frame]], col = col.spot, lty = "dashed", lwd = 2)
+      graphics::lines(t[1:frame], fitted(object)[1:frame], col = col.fit, lwd = 1)    
+      graphics::lines(t[1:(habs + frame)], lm_fit[1:(habs + frame)], col = ggplot2::alpha("black", 0.9), lwd = 1, lty = 3)
+    } else if (bm_extend) {
+      graphics::polygon(c(rep(t[[1]], 2), rep(t[[2 * habs + 1]], 2)), 
+        c(min_y - 0.1 * d, max_y + 0.1 * d, max_y + 0.1 * d, min_y - 0.1 * d),
+        border = NA, col = ggplot2::alpha(col.window, 0.1)) 
+          graphics::abline(v = c(t[[1]], t[[2 * habs + 1]]), col = col.window, lwd = 2)
+      graphics::abline(v = t[[frame]], col = col.spot, lty = "dashed", lwd = 2)
+      graphics::lines(t[1:frame], fitted(object)[1:frame], col = col.fit, lwd = 1)    
+      graphics::lines(t[1:(2 * habs + 1)], lm_fit, col = ggplot2::alpha("black", 0.9), lwd = 1, lty = 3)
+    }
     graphics::points(t[[frame]], fitted(object)[[frame]], col = ggplot2::alpha("purple", 0.4), pch = 19, cex = 1.2)    
     
     graphics::par(new = TRUE)                             # Add new plot
@@ -210,7 +224,12 @@ function(object, col.obs = "grey74", col.fit = "red",
     axes = FALSE, xlab = "", ylab = "", type = "n", xlim = c(min(t), max(t)),
     ylim = c(min(object@weights[, , "Combined"]), max(object@weights[, , "Combined"])))
     graphics::abline(h = 0, col = "lightgray", lty = "dotted")
-    graphics::lines(t[1:(2 * habs + 1)], object@weights[frame, , "Combined"], col = ggplot2::alpha(col.weights, 0.9))
+    if (bm_short) {
+      graphics::lines(t[1:(habs + frame)], object@weights[frame, , "Combined"][1:(habs + frame)], col = ggplot2::alpha(col.weights, 0.9))
+    } else if (bm_extend) {
+      graphics::lines(t[1:(2 * habs + 1)], object@weights[frame, , "Combined"], col = ggplot2::alpha(col.weights, 0.9))
+    }
+    
     graphics::axis(side = 4, col = col.weights, col.ticks = col.weights,
          col.axis = col.weights)       # Add second axis
     graphics::mtext(ylab2, side = 4, line = 3, col = col.weights) 
@@ -275,7 +294,17 @@ function(object, col.obs = "grey74", col.fit = "red",
     
   mat_reg[["y"]] <- object@decomp[(n - 2 * habs):n, 1]
     
-  for (frame in c((n - habs + 1):n, rep(n, 10))) {
+  j <- 0
+  
+  frames <- c((n - habs + 1):n, rep(n, 10))
+  
+  for (u in seq_along(frames)) {
+    
+    frame <- frames[[u]]
+    
+    if (!(((u + n - habs) > (n - habs + 1)) && (frame == frames[[u - 1]]))) {
+      j <- j + 1
+    }
     
     counter <- counter + 1
     
@@ -296,14 +325,26 @@ function(object, col.obs = "grey74", col.fit = "red",
          ylab = "", xlab = xlab)
     graphics::points(0, counter, type = "n")
     graphics::axis(side = 2, col = col.fit, col.ticks = col.fit, col.axis = col.fit)
-    graphics::mtext(ylab1, side = 2, line = 3, col = col.fit)      
-    graphics::polygon(c(rep(t[[n - 2 * habs]], 2), rep(t[[n]], 2)), 
-            c(min_y - 0.1 * d, max_y + 0.1 * d, max_y + 0.1 * d, min_y - 0.1 * d),
-            border = NA, col = ggplot2::alpha(col.window, 0.1))
-    graphics::abline(v = c(t[[n - 2 * habs]], t[[n]]), col = col.window, lwd = 2)
-    graphics::abline(v = t[[frame]], col = col.spot, lty = "dashed", lwd = 2)
-    graphics::lines(t[1:frame], fitted(object)[1:frame], col = col.fit, lwd = 1)
-    graphics::lines(t[(n - 2 * habs):n], lm_fit, col = ggplot2::alpha("black", 0.9), lwd = 1, lty = 3)    
+    graphics::mtext(ylab1, side = 2, line = 3, col = col.fit) 
+    
+    if (bm_short) {
+
+      graphics::polygon(c(rep(t[[n - 2 * habs + j]], 2), rep(t[[n]], 2)), 
+              c(min_y - 0.1 * d, max_y + 0.1 * d, max_y + 0.1 * d, min_y - 0.1 * d),
+              border = NA, col = ggplot2::alpha(col.window, 0.1))
+      graphics::abline(v = c(t[[n - 2 * habs + j]], t[[n]]), col = col.window, lwd = 2)
+      graphics::abline(v = t[[frame]], col = col.spot, lty = "dashed", lwd = 2)
+      graphics::lines(t[1:frame], fitted(object)[1:frame], col = col.fit, lwd = 1)
+      graphics::lines(t[(n - 2 * habs + j):n], utils::tail(lm_fit, -j), col = ggplot2::alpha("black", 0.9), lwd = 1, lty = 3)  
+    } else if (bm_extend) {
+      graphics::polygon(c(rep(t[[n - 2 * habs]], 2), rep(t[[n]], 2)), 
+              c(min_y - 0.1 * d, max_y + 0.1 * d, max_y + 0.1 * d, min_y - 0.1 * d),
+              border = NA, col = ggplot2::alpha(col.window, 0.1))
+      graphics::abline(v = c(t[[n - 2 * habs]], t[[n]]), col = col.window, lwd = 2)
+      graphics::abline(v = t[[frame]], col = col.spot, lty = "dashed", lwd = 2)
+      graphics::lines(t[1:frame], fitted(object)[1:frame], col = col.fit, lwd = 1)
+      graphics::lines(t[(n - 2 * habs):n], lm_fit, col = ggplot2::alpha("black", 0.9), lwd = 1, lty = 3)  
+    }
     graphics::points(t[[frame]], fitted(object)[[frame]], col = ggplot2::alpha("purple", 0.4), pch = 19, cex = 1.2)
     
     graphics::par(new = TRUE)                             # Add new plot
@@ -312,8 +353,13 @@ function(object, col.obs = "grey74", col.fit = "red",
     ylim = c(min(object@weights[, , "Combined"]), max(object@weights[, , "Combined"])))
     graphics::abline(h = 0, col = "lightgray", lty = "dotted")
     
-    graphics::lines(t[(n - 2 * habs):n], object@weights[frame + 2 * habs - n + 1, , "Combined"], col = ggplot2::alpha(col.weights, 0.9))
-    graphics::axis(side = 4, col = col.weights, col.ticks = col.weights,
+    if (bm_short) {
+      graphics::lines(t[(n - 2 * habs + j):n], utils::tail(object@weights[frame + 2 * habs - n + 1, , "Combined"], -j), col = ggplot2::alpha(col.weights, 0.9))
+    } else if (bm_extend) {
+      graphics::lines(t[(n - 2 * habs):n], object@weights[frame + 2 * habs - n + 1, , "Combined"], col = ggplot2::alpha(col.weights, 0.9))
+    }
+      
+      graphics::axis(side = 4, col = col.weights, col.ticks = col.weights,
          col.axis = col.weights)       # Add second axis
     graphics::mtext(ylab2, side = 4, line = 3, col = col.weights) 
     animation::ani.pause()

@@ -43,13 +43,13 @@ library(deseats)
 ### (here: local cubic trend)
 est <- deseats(NOLABORFORCE, set_options(order_poly = 3))
 est@bwidth     # The automatically selected bandwidth
-#> [1] 0.1968428
+#> [1] 0.2113423
 
 ### Plot of the results
 plot(est, which = 1, xlab = "Year")
 ```
 
-<img src="man/figures/README-example-1.png" width="100%" />
+<img src="man/figures/README-example-1.png" alt="" width="100%" />
 
 ### Seasonal adjustment
 
@@ -61,7 +61,7 @@ adj <- deseasonalize(est)
 plot(adj, xlab = "Year", main = "The seasonally adjusted series")
 ```
 
-<img src="man/figures/README-example2-1.png" width="100%" />
+<img src="man/figures/README-example2-1.png" alt="" width="100%" />
 
 ### Forecasting
 
@@ -85,8 +85,8 @@ model
 #> -----------------------------------------
 #> 
 #>  Kernel:    Epanechnikov
-#>  Boundary:  Extend
-#>  Bandwidth: 0.1968
+#>  Boundary:  Shorten
+#>  Bandwidth: 0.2113
 #> 
 #>   Trend:
 #>   ------
@@ -104,10 +104,10 @@ model
 #> 
 #> Coefficients:
 #>          ar1
-#>       0.6743
-#> s.e.  0.0387
+#>       0.6885
+#> s.e.  0.0380
 #> 
-#> sigma^2 estimated as 0.07454:  log likelihood = -43.77,  aic = 91.54
+#> sigma^2 estimated as 0.07362:  log likelihood = -41.54,  aic = 87.08
 ```
 
 The complete model can then be used for forecasting the seasonal time
@@ -119,7 +119,7 @@ fc <- predict(model, n.ahead = 12, method = "norm")
 plot(fc, xlab = "Year", main = "A forecasting example")
 ```
 
-<img src="man/figures/README-example4-1.png" width="100%" />
+<img src="man/figures/README-example4-1.png" alt="" width="100%" />
 
 ### Filters in the frequency domain
 
@@ -138,7 +138,7 @@ plot(fr, weights_interior, type = "l", xlab = "Frequency", ylab = "Gain",
      main = "Middle point filter in the frequency domain")
 ```
 
-<img src="man/figures/README-example5-1.png" width="100%" />
+<img src="man/figures/README-example5-1.png" alt="" width="100%" />
 
 ### Interactive decomposition
 
@@ -146,7 +146,7 @@ The provided decomposition methods can also be applied interactively.
 Run the following code.
 
 ``` r
-runDecomposition()
+run_decomposition()
 ```
 
 This starts a shiny app which lets you load data files, decompose the

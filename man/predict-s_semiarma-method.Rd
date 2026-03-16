@@ -14,6 +14,7 @@
   npaths = 5000,
   quant.type = 8,
   expo = FALSE,
+  adjust.bias = TRUE,
   ...
 )
 }
@@ -55,6 +56,11 @@ forecasting errors; see also the argument \code{type} of the function
 \item{expo}{a logical vector of length one; indicates whether the forecasting 
 results should be exponentiated at the end; the default is \code{expo = FALSE}.}
 
+\item{adjust.bias}{a logical vector of length one; indicates whether or not
+the point forecasts should have a bias adjustment when simultaneously
+\code{expo = TRUE}; the default is \code{TRUE}; for \code{TRUE}, the point
+forecasts on the exponentiated scale will be mean forecasts.}
+
 \item{...}{only for comparability with the standard \code{predict} method.}
 }
 \value{
@@ -73,6 +79,20 @@ Obtain point and interval forecasts based on fitted Seasonal Semi-ARMA models.
 Assume a Seasonal Semi-ARMA model was fitted using \code{\link{s_semiarma}}.
 Pass the resulting object to this method, in order to obtain point and 
 interval forecasts.
+
+If \code{expo = TRUE} and \code{adjust.bias = TRUE}, the point forecasts
+will be exponentiated and adjusted for bias, so that the resulting forecasts
+can be seen as mean forecasts on the exponentiated scale. Forecasting intervals
+do not need such an adjustment. For \code{expo = FALSE}, no adjustment will be
+done. Let \code{y_{n+k}} be the forecast on the log-scale (with \code{n}
+as the number of observations and \code{k} as the forecast horizon). Under
+\code{method = "norm"}, we use
+\eqn{\exp{y_{n+k}}\exp{\sigma_h^2 / 2}} as the bias-adjusted
+point forecast, where \eqn{\sigma_h^2 / 2} is the estimated
+variance of the prediction error in accordance with the infinite-order
+moving-average representation of the fitted ARMA model part.
+For \code{method = "boot"}, the sample mean of future simulated paths on
+the exponentiated scale is obtained.
 }
 \examples{
 \donttest{

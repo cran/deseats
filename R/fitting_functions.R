@@ -49,6 +49,10 @@
 #'a two-element vector.
 #'@param arma_mean only valid for \code{error_model = "ARMA"}; decide whether to 
 #'include an estimate of the mean in the ARMA fitting for the detrended series.
+#'@param inf_criterion selects the information criterion upon which the
+#'ARMA orders for the residuals are chosen; defaults to \code{"bic"} for
+#'the Bayesian information criterion; \code{"aic"} uses the Akaike information
+#'criterion.
 #'
 #'@export
 #'
@@ -93,7 +97,7 @@
 #'select_bwidth(Xt)
 #'
 
-select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = NULL, inflation_rate = c("optimal", "naive"), correction_factor = FALSE, autocor = TRUE, drop = NULL, error_model = c("free", "ARMA"), nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE) {
+select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = NULL, inflation_rate = c("optimal", "naive"), correction_factor = FALSE, autocor = TRUE, drop = NULL, error_model = c("free", "ARMA"), nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE, inf_criterion = c("bic", "aic")) {
   
   check_input_deseats(
     y,
@@ -106,7 +110,15 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
     error_model,
     nar_lim,
     nma_lim,
-    arma_mean
+    arma_mean,
+    inf_criterion
+  )
+  
+  inf_criterion <- match.arg(inf_criterion)
+  inf_c <- switch(
+    inf_criterion,
+    "aic" = 0,
+    "bic" = 1
   )
   
   # Identify exact smoothing options from input
@@ -116,6 +128,13 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
   mu <- det_options[["mu"]] 
   p <- det_options[["p"]]
   bb <- det_options[["bb"]]
+  
+  if (length(y) < 10 * s) {
+    warning(paste0("Bandwidth is estimated on extremely few observations; ",
+                   "may be too few for asymptotics to kick in; results may ",
+                   "thus be highly unreliable."
+    ))
+  }
   
   # Identify algorithm options from input
   alg_options <- determine_alg(
@@ -141,7 +160,7 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
   }
   
   tryCatch({
-    alg_result <- algorithmCpp(y, p, s, mu, bwidth_start, CF, err, drop, bb, err_m, infr, nar_lim[[1]], nar_lim[[2]], nma_lim[[1]], nma_lim[[2]], arma_mean)
+    alg_result <- algorithmCpp(y, p, s, mu, bwidth_start, CF, err, drop, bb, err_m, infr, nar_lim[[1]], nar_lim[[2]], nma_lim[[1]], nma_lim[[2]], arma_mean, inf_c)
   }, error = function(e1) {
     stop(paste0(
       "Convergence of the bandwidth selection algorithm failed. Please try ",
@@ -218,6 +237,10 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
 #'a two-element vector.
 #'@param arma_mean only valid for \code{error_model = "ARMA"}; decide whether to 
 #'include an estimate of the mean in the ARMA fitting for the detrended series.
+#'@param inf_criterion selects the information criterion upon which the
+#'ARMA orders for the residuals are chosen; defaults to \code{"bic"} for
+#'the Bayesian information criterion; \code{"aic"} uses the Akaike information
+#'criterion.
 #'
 #'@export
 #'
@@ -401,7 +424,7 @@ select_bwidth <- function(y, smoothing_options = set_options(), bwidth_start = N
 #'}
 #'
 
-deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, inflation_rate = c("optimal", "naive"), correction_factor = FALSE, autocor = TRUE, drop = NULL, error_model = c("free", "ARMA"), nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE) {
+deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, inflation_rate = c("optimal", "naive"), correction_factor = FALSE, autocor = TRUE, drop = NULL, error_model = c("free", "ARMA"), nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE, inf_criterion = c("bic", "aic")) {
 
   ts_name <- deparse(substitute(y))
   
@@ -419,7 +442,15 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
     error_model,
     nar_lim,
     nma_lim,
-    arma_mean
+    arma_mean,
+    inf_criterion
+  )
+  
+  inf_criterion <- match.arg(inf_criterion)
+  inf_c <- switch(
+    inf_criterion,
+    "aic" = 0,
+    "bic" = 1
   )
   
   # Identify exact smoothing options from input
@@ -448,7 +479,8 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
       error_model = error_model,
       nar_lim,
       nma_lim,
-      arma_mean
+      arma_mean,
+      inf_criterion
     )$bopt
   
   }
@@ -460,15 +492,16 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
   if (CF) {
     adjfactor <- CF_table$CF[CF_table$s == s & CF_table$p == p & CF_table$mu == mu]
     
-    stopifnot("the use of correction_factor = TRUE inflates the bandwidth too strongly; try correction_factor = FALSE or use a smaller bandwidth" = bwidth * adjfactor <= 0.49)   
+    #stopifnot("the use of correction_factor = TRUE inflates the bandwidth too strongly; try correction_factor = FALSE or use a smaller bandwidth" = bwidth * adjfactor <= 0.49)   
     
     ResidsAdj <- tryCatch({
       residdeseatsCpp(y, p, s, mu, bwidth * adjfactor, bb)
     }, error = function (e1){
-      stop(paste0(
-        "Convergence of the bandwidth selection algorithm failed. Please try ",
-        "other settings or select a bandwidth manually."
-      ), call. = FALSE)      
+      warning(paste0(
+        "Bandwidth for estimating sum of autocovariances too large; defaulting ",
+        "to the bandwidth 0.49 for this step."
+      ), call. = FALSE)   
+      residdeseatsCpp(y, p, s, mu, 0.49, bb)
     }
     )
     if (err == 1) {
@@ -481,7 +514,7 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
       if (err_m == 1) {
         sum_autocov <- cf0Cpp(Residuals)          
       } else if (err_m == 0) {
-        arma_orders <-  select_arma_orders(Residuals, NULL, NULL, nar_lim, nma_lim, arma_mean)
+        arma_orders <-  select_arma_orders(Residuals, NULL, NULL, nar_lim, nma_lim, arma_mean, inf_criterion)
         arma_fit <- stats::arima(Residuals, order = c(arma_orders[[1]], 0, arma_orders[[2]]), include.mean = arma_mean)
         ar <- ma <- 0
         if (arma_orders[[1]] > 0) {
@@ -583,6 +616,10 @@ deseats <- function(y, smoothing_options = set_options(), bwidth_start = NULL, i
 #'a two-element vector.
 #'@param arma_mean only valid for \code{error_model = "ARMA"}; decide whether to 
 #'include an estimate of the mean in the ARMA fitting for the detrended series.
+#'@param inf_criterion selects the information criterion upon which the
+#'ARMA orders for the residuals are chosen; defaults to \code{"bic"} for
+#'the Bayesian information criterion; \code{"aic"} uses the Akaike information
+#'criterion.
 #'
 #'@export
 #'
@@ -636,21 +673,24 @@ s_semiarma <- function(yt, smoothing_options = set_options(),
                        bwidth_start = 0.2, inflation_rate = c("optimal", "naive"),
                        correction_factor = FALSE, drop = NULL,
                        error_model = c("free", "ARMA"),
-                       nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE) {
+                       nar_lim = c(0, 3), nma_lim = c(0, 3), arma_mean = FALSE,
+                       inf_criterion = c("bic", "aic")) {
   
   ts_name <- deparse(substitute(yt))
   
   nonpar_model <- deseats(yt, smoothing_options, bwidth_start, inflation_rate = inflation_rate,
                           autocor = TRUE, correction_factor = correction_factor, drop = drop,
                           error_model = error_model, nar_lim = nar_lim,
-                          nma_lim = nma_lim, arma_mean = arma_mean)
+                          nma_lim = nma_lim, arma_mean = arma_mean, inf_criterion = inf_criterion)
   nonpar_model@ts_name <- ts_name
   
   res <- residuals(nonpar_model)
+  inf_criterion <- match.arg(inf_criterion)
   
   ar_ma_select <- select_arma_orders(res, arma_options$ar_order, 
                                      arma_options$ma_order,
-                                     nar_lim, nma_lim, arma_mean)  
+                                     nar_lim, nma_lim, arma_mean,
+                                     inf_criterion = inf_criterion)  
   
   ar <- ar_ma_select[[1]]
   ma <- ar_ma_select[[2]]

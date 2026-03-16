@@ -1,0 +1,118 @@
+---
+title: "Introduction to deseats"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to deseats}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup, echo = FALSE, eval = TRUE, message = FALSE}
+library(deseats)
+```
+
+`deseats` is an R package for working with seasonal univariate time series. At its core is an algorithm that employs locally weighted regression with an automatically selected bandwidth to split a time series into a smooth trend, a slowly changing seasonal component and residuals that are allowed to show signs of short-range dependence. To install the package from CRAN and attach the library in your current R session, run the following code:
+
+```{r, echo = TRUE, eval = FALSE}
+install.packages("deseats")    # Install the package from CRAN
+library(deseats)               # Attach the package
+```
+
+In the following, a typical workflow with the package will be shown.
+
+# Typical workflow
+
+The main functions of the package are `set_options()`, `deseats()` and `s_semiarma()`. `set_options()` can be used to specify basic settings in locally weighted regression; its default returns settings favorable in many decomposition cases, but the order of local polynomials, the kernel weighting function, the boundary method and the bandwidth can be adjusted using the arguments `order_poly`, `kernel_fun`, `boundary_method` and `bwidth`, respectively. By default, we have `order_poly = 3`, `kernel_fun = "epanechnikov"`, `boundary_method = "shorten` and `bwidth = NA_real_`. With `deseats()`, the actual decomposition can be implemented. Simply pass a univariate time series object of class `"ts"` to its first argument (with properly set seasonal frequency), and the output of `set_options()` to its second argument. If within `set_options()` we have `bwidth = NA_real_`, then the automatic bandwidth selection will be triggered in the call to `deseats()`. `s_semiarma()` is a wrapper of `deseats()`, which extends the decomposition by fitting an ARMA model to the residuals of the decomposition. It shares most of its arguments with `deseats()`.
+
+## Running a decomposition
+
+It is **important** to note that `deseats` decomposes a time series under the assumption that the series follows an **additive component model**. To implement a multiplicative component model, one may use a log-transformation, so that the log-data follows an additive component model.
+
+In the following, we show the application of `deseats()` to the object `NOLABORFORCE`, which is already formatted as a `"ts"` object with `frequency = 12`, as it is a monthly time series with yearly repeating seasonal pattern. Moreover, the variation around its overall level seems stable enough to assume an additive component model.
+
+```{r}
+yt <- NOLABORFORCE
+decomp <- deseats(yt, smoothing_options = set_options())
+decomp
+```
+
+The console output shows you the main results of the decomposition, including the selected bandwidth. Since `deseats()` returns an S4-class object, we may also obtain the selected bandwidth as follows:
+
+```{r}
+decomp@bwidth
+```
+
+Aside from the bandwidth, we may obtain the three estimated components, i.e. the fitted trend, the estimated seasonal component, and the residuals, using designated methods, namely `trend()`, `season()` and `residuals()`. To obtain the seasonally adjusted time series, one may call `deseasonalize()`.
+
+```{r}
+trend_est <- trend(decomp)           # Fitted trend
+season_est <- season(decomp)         # Fitted seasonal component
+error_est <- residuals(decomp)       # Residuals
+season_adj <- deseasonalize(decomp)  # Seasonally adjusted series
+```
+
+## Illustrating decomposition results
+
+The package contains designated `plot()` and `autoplot()` methods to create figures in the style of base R and `ggplot2`. The user may either select a figure from the options displayed in the R console, or the selection may already be passed to the argument `which` in the function call. A list of the available figures can be seen from the console after calling `plot(decomp)` or from the package manual. To select a decomposition plot with the original series and the estimated components, we may run:
+
+```{r, fig.align = 'center', fig.height = 5, fig.width = 7}
+plot(decomp, which = 1, xlab = "Year")
+```
+
+Note that the label of the x-axis was adjusted with `xlab = "Year"` in the function call. Similarly, other options to modify the plot are available. See the documentation for more information.
+
+A more informative plot is available with:
+
+```{r, fig.align = 'center', fig.height = 4, fig.width = 7}
+plot(decomp, which = 5, xlab = "Year", ylab = "Millions of person", 
+     main = "US persons not in the US labor force", s_around = 55)
+```
+
+It shows the original series together with the fitted trend, and it also displays the estimated seasonality. By default, the estimated seasonal component, even though it is fluctuating around zero, will be shifted and shown around the original series' sample mean for improved visibility, but using `s_around` we may re-center the estimated seasonal component within the figure around any arbitrary value.
+
+## Forecasting
+
+To produce point and interval forecasts, we employ `s_semiarma()` first. It runs the decomposition by `deseats()` and selectes the best ARMA model for the residuals in accordance with either the BIC (default) or the AIC.
+
+```{r}
+full_model <- s_semiarma(yt, smoothing_options = set_options())
+full_model
+```
+
+An AR(1) model was selected for the residuals. Now we can produce the forecasts using `predict()`. If the residuals resulting from the fitted ARMA model are roughly normal, one may use the setting `method = "norm"` to obtain forecasting intervals under the assumption of normality. Otherwise, assuming that the errors are at least independent, we may use a bootstrap via `method = "boot"`. If the latter is used, `set.seed()` should be called to allow for reproducibility. Forecasts are produced as follows: the estimated trend is extrapolated linearly using the last two trend values, the last estimated seasonal cycle is continued into the future, and the residual forecasts are obtained from the fitted ARMA. We condition on the trend and seasonal forecasts, so that the forecasting intervals are only obtained from the ARMA model fitted to the decomposition residuals.
+
+```{r}
+set.seed(1)
+fc <- predict(full_model, n.ahead = 12, method = "boot")
+```
+
+The returned forecasting object contains the point forecasts (`fc@pred`) as well as the lower and the upper bounds of the forecasting intervals (`fc@interv`). By default, those bounds will be obtained at the 95% and the 99% level; however, this can be adjusted with the argument `alpha` in the call to `predict()`. A simple forecasting plot may now be created as follows:
+
+```{r, fig.align = 'center', fig.height = 4, fig.width = 7}
+plot(fc, xlab = "Year", ylab = "Millions of person", main = "US persons not in the US labor force",
+     xlim = c(2010, 2021 - 1 / 12), ylim = c(80, 97))
+```
+
+`xlim` and `ylim` were used to adjust the plot window, so that only the last observations will be shown together with the forecasts. If we had implemented an initial log-transformation of the data, we may want to retransform the forecasts. In such a case, we should set `expo = TRUE` in the call to the `predict()` method. By default, with `adjust.bias = TRUE`, the point forecasts are then adjusted for biases on the original scale. Under normality, this is done using the theoretical relation between the normal distribution (for the log-data forecasts) and the log-normal distribution (for the original data forecasts). When the bootstrap is applied, the sample mean of the future retransformed paths is considered.
+
+**Note**: forecasts using this method should only be created for the next few future time points, as extrapolating estimated components can lead to highly unreliable results, if going too far into the future.
+
+# Other decomposition methods
+
+The `deseats` package also contains several other methods for decomposing seasonal time series, such as `hamilton_filter()`, `ma_decomp()`, `lm_decomp()` and `llin_decomp()`. As an extra, the base model of the Berlin method (version 4.1) can be implemented with `BV4.1()`. The plotting methods shown in the context of `deseats()` are also available for the decomposition results of these functions.
+
+```{r, fig.align = 'center', fig.height = 5, fig.width = 7}
+decomp2 <- BV4.1(yt)
+plot(decomp2, which = 1)
+```
+
+# Further information
+
+For further information, we refer readers to the manual of the `deseats` package, where the decomposition using `deseats()` is explained in more detail.

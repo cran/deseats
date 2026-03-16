@@ -45,16 +45,16 @@ armaCpp <- function(Xt, p, q, armamean) {
     .Call('_deseats_armaCpp', PACKAGE = 'deseats', Xt, p, q, armamean)
 }
 
-BICarmaCpp <- function(Xt, p, q, armamean) {
-    .Call('_deseats_BICarmaCpp', PACKAGE = 'deseats', Xt, p, q, armamean)
+BICarmaCpp <- function(Xt, p, q, armamean, inf_c) {
+    .Call('_deseats_BICarmaCpp', PACKAGE = 'deseats', Xt, p, q, armamean, inf_c)
 }
 
-selectOrderBIC <- function(Xt, pmin, pmax, qmin, qmax, armamean) {
-    .Call('_deseats_selectOrderBIC', PACKAGE = 'deseats', Xt, pmin, pmax, qmin, qmax, armamean)
+selectOrderBIC <- function(Xt, pmin, pmax, qmin, qmax, armamean, inf_c) {
+    .Call('_deseats_selectOrderBIC', PACKAGE = 'deseats', Xt, pmin, pmax, qmin, qmax, armamean, inf_c)
 }
 
-armaoptCpp <- function(Xt, narmin, narmax, nmamin, nmamax, armamean) {
-    .Call('_deseats_armaoptCpp', PACKAGE = 'deseats', Xt, narmin, narmax, nmamin, nmamax, armamean)
+armaoptCpp <- function(Xt, narmin, narmax, nmamin, nmamax, armamean, inf_c) {
+    .Call('_deseats_armaoptCpp', PACKAGE = 'deseats', Xt, narmin, narmax, nmamin, nmamax, armamean, inf_c)
 }
 
 arma_sumacovCpp <- function(arma) {
@@ -81,8 +81,8 @@ derivdeseatsCpp <- function(y, p, s, mu, b, bb, v) {
     .Call('_deseats_derivdeseatsCpp', PACKAGE = 'deseats', y, p, s, mu, b, bb, v)
 }
 
-algorithmCpp <- function(yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo, narmin, narmax, nmamin, nmamax, armamean) {
-    .Call('_deseats_algorithmCpp', PACKAGE = 'deseats', yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo, narmin, narmax, nmamin, nmamax, armamean)
+algorithmCpp <- function(yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo, narmin, narmax, nmamin, nmamax, armamean, inf_c) {
+    .Call('_deseats_algorithmCpp', PACKAGE = 'deseats', yt, p, s, mu, bStart, CF, errors, cb, bb, errm, expo, narmin, narmax, nmamin, nmamax, armamean, inf_c)
 }
 
 wls_Cpp <- function(x, y, wk) {

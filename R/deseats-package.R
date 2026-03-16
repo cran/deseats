@@ -83,9 +83,7 @@
 #'@importFrom utils head tail
 #'
 #'@useDynLib deseats
-#'@docType package
 #'@name deseats-package
-#'@aliases deseats-package
 #'@useDynLib deseats
 #'@importFrom Rcpp sourceCpp
-NULL
+"_PACKAGE"

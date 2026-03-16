@@ -236,12 +236,19 @@ aniSave <- function(fun) {
   )
 }
 
-select_arma_orders <- function(xt, ar, ma, nar_lim, nma_lim, arma_mean) {
+select_arma_orders <- function(xt, ar, ma, nar_lim, nma_lim, arma_mean, inf_criterion) {
   
   if (is.null(ar) && is.null(ma)) {
     n <- length(xt)
     P <- nar_lim[[1]]:nar_lim[[2]]
     Q <- nma_lim[[1]]:nma_lim[[2]]
+    
+    fac <- switch(
+      inf_criterion,
+      "bic" = log(n),
+      "aic" = 2
+    )
+    
     bic <- matrix(NA, nrow = length(P), ncol = length(Q))    
 
     for (p0 in P) {
@@ -252,7 +259,7 @@ select_arma_orders <- function(xt, ar, ma, nar_lim, nma_lim, arma_mean) {
             include.mean = arma_mean))
           }, error = function(e1) {data.frame(loglik = -10000000)}
         )
-        bic[p0 - P[[1]] + 1, q0 - Q[[1]] + 1] <- -2 * arma$loglik + (p0 + q0) * log(n)
+        bic[p0 - P[[1]] + 1, q0 - Q[[1]] + 1] <- -2 * arma$loglik + (p0 + q0) * fac
       }
     }
 
@@ -274,7 +281,8 @@ cap_1st <- function(string) {
     sub(paste0("^", first_letter), LETTERS[[w]], string)
 }
 
-check_input_deseats <- function(y, smoothing_options, bwidth_start, inflation_rate, correction_factor, autocor, drop, error_model, nar_lim, nma_lim, arma_mean) {
+check_input_deseats <- function(y, smoothing_options, bwidth_start, inflation_rate, correction_factor, autocor, drop, error_model, nar_lim, nma_lim, arma_mean, inf_criterion) {
+
   
   stopifnot(
     'y needs to be a time series object of class "ts" or a numeric vector' = (inherits(y, "ts") || (is.atomic(y) && is.numeric(y))),
@@ -287,7 +295,8 @@ check_input_deseats <- function(y, smoothing_options, bwidth_start, inflation_ra
     'error_model must be either "free" or "ARMA"' = (is.character(error_model) && (all(error_model == c("free", "ARMA")) || (length(error_model) == 1 && error_model %in% c("free", "ARMA")))),
     "nar_lim must be a two-element numeric vector" = (is.numeric(nar_lim) && length(nar_lim) == 2 && nar_lim[[1]] <= nar_lim[[2]]),
     "nma_lim must be a two-element numeric vector" = (is.numeric(nma_lim) && length(nma_lim) == 2 && nma_lim[[1]] <= nma_lim[[2]]),  
-    "arma_mean must be a single logical value" = (is.logical(arma_mean) && length(arma_mean) == 1)   
+    "arma_mean must be a single logical value" = (is.logical(arma_mean) && length(arma_mean) == 1),
+    'inf_criterion must be the vector c("bic", "aic") or one of those values' = (is.character(inf_criterion) && (length(inf_criterion) %in% c(1, 2)) && all(inf_criterion %in% c("bic", "aic")))
   )   
   
 }

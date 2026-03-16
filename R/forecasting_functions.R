@@ -39,8 +39,8 @@ bootCast <- function(model, X, p = NULL, q = NULL,
   
   quants <- t(apply(err.mat, MARGIN = 2, quantile,
                   probs = q_check, type = quant.type))
-
-  quants
+  
+  list(quants = quants, err.mat = err.mat)
 
 }
 
@@ -161,7 +161,8 @@ normCast <- function(model, p = NULL, q = NULL, h = 1,
   sig2 <- model$sigma2
 
   c.coef <- arma_to_ma(ar = ar, ma = ma, max_i = h - 1)
-  sd.fcast <- sqrt(sig2 * cumsum(c.coef^2))
+  var.fcast <- sig2 * cumsum(c.coef^2)
+  sd.fcast <- sqrt(var.fcast)
   alpha.s <- 1 - alpha
   q_check <- sort(c(alpha.s / 2, 1 - alpha.s / 2))
   q_norm <- matrix(rep(qnorm(q_check), h), ncol = length(q_check), nrow = h, byrow = TRUE)
@@ -170,6 +171,6 @@ normCast <- function(model, p = NULL, q = NULL, h = 1,
   cname <- paste0(q_check * 100, "%")
   colnames(q_out) <- cname
   
-  q_out
+  list(q_out = q_out, var.fcast = var.fcast)
 
 }

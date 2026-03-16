@@ -57,17 +57,24 @@ Rcpp::List armaCpp(const arma::vec& Xt, const int p, const int q, const int arma
 }
 
 // [[Rcpp::export]]
-double BICarmaCpp(const arma::vec& Xt, const int p, const int q, const int armamean) {
+double BICarmaCpp(const arma::vec& Xt, const int p, const int q, const int armamean, const int inf_c) {
   
   Rcpp::List arma = armaCpp(Xt, p, q, armamean);
   const double llhood = arma["loglik"];
-  const int n = Xt.size();
-  return -2.0 * llhood + std::log(n) * (p + q);
+  double fact = 0;
+  int n = 0;
+  if (inf_c == 0) {
+    fact = 2.0;
+  } else if (inf_c == 1) {
+    n = Xt.size();
+    fact = std::log(n);
+  }
+  return -2.0 * llhood + fact * (p + q);
   
 } 
 
 // [[Rcpp::export]]
-Rcpp::NumericVector selectOrderBIC(const arma::vec& Xt, const int pmin, const int pmax, const int qmin, const int qmax, const int armamean) {
+Rcpp::NumericVector selectOrderBIC(const arma::vec& Xt, const int pmin, const int pmax, const int qmin, const int qmax, const int armamean, const int inf_c) {
   
   arma::mat bicmat = arma::zeros<arma::mat>(pmax - pmin + 1, qmax - qmin + 1);
   
@@ -78,7 +85,7 @@ Rcpp::NumericVector selectOrderBIC(const arma::vec& Xt, const int pmin, const in
     mai = 0;
     for (int q0 = qmin; q0 < qmax + 1; ++q0) {
       
-      bicmat(ari, mai) = BICarmaCpp(Xt, p0, q0, armamean);
+      bicmat(ari, mai) = BICarmaCpp(Xt, p0, q0, armamean, inf_c);
       
       mai = mai + 1;
       
@@ -102,9 +109,9 @@ Rcpp::NumericVector selectOrderBIC(const arma::vec& Xt, const int pmin, const in
 }
 
 // [[Rcpp::export]]
-Rcpp::List armaoptCpp(const arma::vec& Xt, const int narmin, const int narmax, const int nmamin, const int nmamax, const int armamean) {
+Rcpp::List armaoptCpp(const arma::vec& Xt, const int narmin, const int narmax, const int nmamin, const int nmamax, const int armamean, const int inf_c) {
   
-  Rcpp::NumericVector order = selectOrderBIC(Xt, narmin, narmax, nmamin, nmamax, armamean);
+  Rcpp::NumericVector order = selectOrderBIC(Xt, narmin, narmax, nmamin, nmamax, armamean, inf_c);
   
   Rcpp::Environment pkg = Rcpp::Environment::namespace_env("deseats");
   // Rcpp::Function f = pkg["arima"];    
@@ -167,6 +174,7 @@ double cf0Cpp(const arma::vec& Xt) {
   int runc = 1;
   arma::vec L(nit + 1);
   L(0) = std::trunc(n / 2.0 + 0.5);
+  const int maxL = n;
   const double c1 = (std::pow(ga(0), 2.0) + 2.0 * arma::accu(arma::pow(ga.subvec(1, n - 1), 2.0))) / (4.0 * M_PI);
   double c2 = 0;
   int L1 = 0;
@@ -175,6 +183,7 @@ double cf0Cpp(const arma::vec& Xt) {
   for(int i = 0; i < nit; i++) {
     if(runc == 1) {
       L1 = std::trunc(L(i) / std::pow(n, 2.0 / 21.0)) + 1;
+      L1 = std::min(L1, maxL);
       arma::vec x1 = seqCpp(0, L1 - 1) / L1;
       arma::vec w1 = 1.0 - x1;
       arma::vec gai = seqCpp(0, L1 - 1) % ga.subvec(0, L1 - 1) % w1;
@@ -192,8 +201,9 @@ double cf0Cpp(const arma::vec& Xt) {
   if (runc == 1) {
     LGopt = L(nit);
   }
-
+  
   L1 = std::trunc(LGopt / std::pow(n, 2.0 / 21.0)) + 1;
+  L1 = std::min(L1, maxL);
   arma::vec x1 = seqCpp(0, L1 - 1) / L1;
   arma::vec w1 = 1.0 - x1;
   arma::vec ga1 = seqCpp(0, L1 - 1) % ga.subvec(0, L1 - 1) % w1;
@@ -201,7 +211,8 @@ double cf0Cpp(const arma::vec& Xt) {
   const arma::vec w0 = (1.0 + cos(M_PI * x1)) / 2.0;
   arma::vec ga0 = ga.subvec(0, L1 - 1) % w0;
   const double c10 = std::pow(2.0 * arma::accu((ga0.subvec(0, L1 - 1))) - ga0(0), 2.0) / (2.0 * M_PI);
-  const int L0opt = std::trunc(std::pow(n, 1.0 / 3.0) * std::pow((c20 / c10) / 2.0, 1.0 / 3.0)) + 1;
+  int L0opt = std::trunc(std::pow(n, 1.0 / 3.0) * std::pow((c20 / c10) / 2.0, 1.0 / 3.0)) + 1;
+  L0opt = std::min(L0opt, maxL - 1);
   const arma::vec wacf = arma::reverse(seqCpp(1, L0opt + 1)) / (L0opt + 1.0);
   const arma::vec acfX = ga.subvec(0, L0opt);
   const double cf0LW = 2.0 * arma::accu(acfX % wacf) - acfX(0);
@@ -531,11 +542,8 @@ arma::vec derivdeseatsCpp(const arma::vec& y, const int p,
 }
 
 // [[Rcpp::export]]
-Rcpp::List algorithmCpp(const arma::vec& yt, const int p, const int s, const int mu, const double bStart, const int CF, const int errors, const double cb, const int bb, const int errm, const double expo, const int narmin, const int narmax, const int nmamin, const int nmamax, const int armamean) {
+Rcpp::List algorithmCpp(const arma::vec& yt, const int p, const int s, const int mu, const double bStart, const int CF, const int errors, const double cb, const int bb, const int errm, const double expo, const int narmin, const int narmax, const int nmamin, const int nmamax, const int armamean, const int inf_c) {
   
-  double bopt = bStart;
-  double boptOld = -100;
-  double boptOld2 = -100;
   const int n = yt.size();
   const int k = p + 1;
   
@@ -641,9 +649,16 @@ Rcpp::List algorithmCpp(const arma::vec& yt, const int p, const int s, const int
     }
   }    
   
-  double bmax = 0.49;       // The maximum bandwidth 
-  double bmin = 0.01;       // The minimum bandwidth 
+  double bmax = 0.49;           // The maximum bandwidth 
+  double bmin = ((p + s - 1) / 2.0) / n;  // The minimum bandwidth 
 
+  double bopt = bStart;
+  bopt = std::max(bopt, bmin);
+  bopt = std::min(bopt, bmax);  
+  
+  double boptOld = -100;
+  double boptOld2 = -100;
+  
   const int v = k;
   const int pv = k + 1;
 
@@ -704,6 +719,7 @@ Rcpp::List algorithmCpp(const arma::vec& yt, const int p, const int s, const int
     bv = std::max(bv, bmin);
     bv = std::min(bv, bmax);  
     
+
     gv = derivdeseatsCpp(yt, pv, s, mu, bv, bb, v);
   
     I2 = arma::accu(arma::pow(gv.subvec(n1, n - n1 - 1), 2.0)) / (n - 2 * n1);
@@ -712,17 +728,19 @@ Rcpp::List algorithmCpp(const arma::vec& yt, const int p, const int s, const int
     bAdj = std::max(bAdj, bmin);
     bAdj = std::min(bAdj, bmax);     
     
+
     resAdj = residdeseatsCpp(yt, p, s, mu, bAdj, bb);
       
     if (errors == 1) {
       
       if (errm == 1) {
       
+
         cf0 = cf0Cpp(resAdj);
-        
+
       } else if (errm == 0) {
         
-        Rcpp::List arma = armaoptCpp(resAdj, narmin, narmax, nmamin, nmamax, armamean);
+        Rcpp::List arma = armaoptCpp(resAdj, narmin, narmax, nmamin, nmamax, armamean, inf_c);
         cf0 = arma_sumacovCpp(arma);
         
       }
@@ -743,11 +761,11 @@ Rcpp::List algorithmCpp(const arma::vec& yt, const int p, const int s, const int
     bopt = std::max(bopt, bmin);
     bopt = std::min(bopt, bmax);   
    
-    if (std::abs(bopt - boptOld) / bopt < diffvalue) {
+    if (it > 2 && std::abs(bopt - boptOld) / bopt < diffvalue) {
       stopreason = 1;
     }
     
-    if (std::abs(bopt - boptOld2) / bopt < diffvalue) {
+    if (it > 3 && std::abs(bopt - boptOld2) / bopt < diffvalue) {
       stopreason = 1;
       bopt = (bopt + boptOld) / 2.0;
     }  

@@ -16,7 +16,8 @@ deseats(
   error_model = c("free", "ARMA"),
   nar_lim = c(0, 3),
   nma_lim = c(0, 3),
-  arma_mean = FALSE
+  arma_mean = FALSE,
+  inf_criterion = c("bic", "aic")
 )
 }
 \arguments{
@@ -79,6 +80,11 @@ a two-element vector.}
 
 \item{arma_mean}{only valid for \code{error_model = "ARMA"}; decide whether to 
 include an estimate of the mean in the ARMA fitting for the detrended series.}
+
+\item{inf_criterion}{selects the information criterion upon which the
+ARMA orders for the residuals are chosen; defaults to \code{"bic"} for
+the Bayesian information criterion; \code{"aic"} uses the Akaike information
+criterion.}
 }
 \value{
 The function returns and S4 object with the following elements (access them 

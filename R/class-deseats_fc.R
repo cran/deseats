@@ -27,6 +27,13 @@ create_deseats_fc <- function(pred, interv, obs, ts_name) {
 #'@param object an object of class \code{"deseats_fc"}.
 #'@param ... currently without purpose; included for compatibility only.
 #'
+#'@details
+#'This function simply exponentiates point forecasts and bounds of interval
+#'forecasts within an object of class \code{"deseats_fc"}. This does not
+#'have the option to account for potential biases in point forecasts. For this
+#'purpose, use the predict method directly with \code{expo = TRUE} and
+#'\code{adjust.bias = TRUE}.
+#'
 #'@export
 #'
 #'@return
